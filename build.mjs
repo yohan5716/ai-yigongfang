@@ -31,8 +31,135 @@ const SITE = {
   name: "AI义工坊",
   url: "https://ygf.de5.net",
   owner: "Yohan",
+  repo: "https://github.com/yohan5716/ai-yigongfang",
+  issue: "https://github.com/yohan5716/ai-yigongfang/issues/new",
   desc: "站长实测收录的免费工具导航目录，只收官方与开源来源，无广告无捆绑。"
 };
+
+/* 外链统一属性：P7 要求所有站外链接都带这三个值 */
+const EXT_REL = 'target="_blank" rel="noopener noreferrer nofollow"';
+
+/* ============================================================
+ * 合规页（P7）
+ * 四张页面共用 shell 的页头页脚；删除/新增只需改这个数组。
+ * ============================================================ */
+const LEGAL = [
+  {
+    slug: "about", nav: "关于本站", title: "关于本站",
+    desc: "AI义工坊是什么、收录标准是什么、不做什么，以及怎么联系站长。",
+    body: () => `
+      <h2>这是什么</h2>
+      <p>AI义工坊是一个由站长（${esc(SITE.owner)}）手工实测、逐条收录的免费工具导航目录。这里的每一条都经过实际安装或使用，不是从别处复制粘贴的清单。</p>
+
+      <h2>收录标准</h2>
+      <ul>
+        <li><b>来源正规</b>：只收软件官网、官方发布页、开源仓库（GitHub / Gitee 等），不收录网盘转发、第三方下载站</li>
+        <li><b>实测可用</b>：站长自己装过、用过，写得出实际体验，不是照抄简介</li>
+        <li><b>无捆绑推广</b>：带推广安装包、强制改主页、弹窗广告的一律不收</li>
+        <li><b>不碰灰色地带</b>：不收录需要破解、激活码、盗版序列号的软件</li>
+      </ul>
+
+      <h2>本站不做什么</h2>
+      <ul>
+        <li>不托管、不存储、不分发任何软件文件，只提供指向官方来源的链接</li>
+        <li>不投放任何广告，不接第三方统计、不埋分析脚本</li>
+        <li>不提供二次打包文件，不走网盘中转</li>
+      </ul>
+
+      <h2>内容怎么维护</h2>
+      <p>所有条目数据存放在开源仓库的 <code>data/tools.js</code> 里，站长通过自建后台增删改，提交后由 GitHub Actions 自动重新构建页面。</p>
+
+      <h2>联系站长</h2>
+      <p>功能建议、条目推荐、内容纠错、侵权下架，统一走 GitHub Issues（该仓库公开，无需是开发者也能提交）：</p>
+      <p><a href="${esc(SITE.issue)}" ${EXT_REL}>→ 提交 Issue</a>　
+         <a href="${esc(SITE.repo)}" ${EXT_REL}>→ 查看仓库</a></p>
+      <p style="color:var(--muted);font-size:13px">提 Issue 时请写清条目名称和具体问题，方便快速处理。</p>
+    `
+  },
+  {
+    slug: "disclaimer", nav: "免责声明", title: "免责声明",
+    desc: "本站仅提供信息索引，不提供任何软件的下载、存储或分发，使用风险由使用者自行承担。",
+    body: () => `
+      <h2>本站的角色</h2>
+      <p>本站是<b>信息索引站</b>，只负责整理和推荐，不提供任何软件的下载、存储、代下载或分发服务。站内所有「官网 / 下载」按钮指向的都是第三方（软件作者、其官网或代码托管平台）。</p>
+
+      <h2>关于第三方软件</h2>
+      <ul>
+        <li>收录<b>不等于</b>推荐、背书或担保，只代表站长实测时该工具可用</li>
+        <li>不对第三方软件的<b>可用性、安全性、稳定性、合法性</b>作任何保证</li>
+        <li>软件的功能、授权方式、价格与免费政策随时可能变更，<b>一律以官方最新说明为准</b></li>
+        <li>本站已尽合理努力核实信息，但不保证内容完全准确、完整或及时更新</li>
+      </ul>
+
+      <h2>关于外链</h2>
+      <p>点击站外链接后即离开本站。目标网站的内容、可用性与隐私做法均由该网站负责，与本站无关。若发现链接失效或指向内容已变，欢迎<a href="${esc(SITE.issue)}" ${EXT_REL}>反馈</a>。</p>
+
+      <h2>责任限制</h2>
+      <p>使用本站信息及第三方软件所产生的任何直接或间接后果（包括但不限于数据丢失、设备损坏、账号风险），由使用者自行承担。请在安装前自行确认软件的正版性、兼容性与授权条款，并做好备份。</p>
+
+      <p style="color:var(--muted);font-size:13px">若你认为本站某条信息侵犯了你的合法权益，请走<a href="./takedown.html">侵权下架通道</a>。</p>
+    `
+  },
+  {
+    slug: "privacy", nav: "隐私政策", title: "隐私政策",
+    desc: "本站不设账号、不使用 Cookie、不投放广告、不接第三方统计，只在你浏览器本地保存少量偏好数据。",
+    body: () => `
+      <h2>一句话概括</h2>
+      <p>本站是纯静态站点，<b>没有账号系统，不收集你的姓名、手机号、邮箱等任何身份信息</b>，不使用 Cookie，不投放广告，不接入任何第三方统计或分析脚本。</p>
+
+      <h2>保存在你浏览器本地的数据</h2>
+      <p>以下数据只存在你自己的浏览器 <code>localStorage</code> 里，<b>不会上传到服务器</b>，清空浏览器数据即全部消失：</p>
+      <ul>
+        <li><code>aiygf:theme</code> — 你选择的明暗主题</li>
+        <li><code>aiygf:favs</code> — 你收藏的工具条目</li>
+        <li><code>aiygf:liked</code> / <code>aiygf:likeDelta</code> — 你点过赞的条目与本地待同步增量</li>
+      </ul>
+      <p>站长后台页（<code>/admin.html</code>）另会把仓库地址与访问令牌存在你本机浏览器里，同样不会上传到第三方。</p>
+
+      <h2>点赞接口会处理什么</h2>
+      <p>为了防止刷赞，点赞接口在<b>启用时</b>会把访问者的 IP 与 User-Agent 拼起来做一次 SHA-256 摘要，取前 16 位十六进制字符作为去重指纹，24 小时后自动过期。<b>原始 IP 不会被存储</b>。</p>
+      <p>需要说明的是：本站当前部署在 GitHub Pages 上，该接口并未运行，因此现阶段点赞数据完全保存在你的浏览器本地。</p>
+
+      <h2>托管平台产生的日志</h2>
+      <p>本站由 GitHub Pages 托管，GitHub 可能按其一贯做法记录访问 IP 与 User-Agent 等常规访问日志。这部分数据处理遵循 GitHub 自身的隐私声明，本站无法访问也无法控制。</p>
+
+      <h2>第三方资源</h2>
+      <p>站内不加载任何第三方 CDN、外部字体或统计脚本。页面用到的图标是 emoji 或内联 SVG，二维码生成组件 <code>vendor/qrcode.js</code> 由本站自行托管。</p>
+
+      <h2>未成年人</h2>
+      <p>本站不面向未成年人收集任何信息，事实上也不向任何人收集身份信息。</p>
+
+      <h2>政策变更与联系方式</h2>
+      <p>本政策如有调整会在本页更新。对隐私处理有疑问，可通过 <a href="${esc(SITE.issue)}" ${EXT_REL}>GitHub Issues</a> 提出。</p>
+    `
+  },
+  {
+    slug: "takedown", nav: "侵权下架", title: "侵权下架通道",
+    desc: "认为本站某条收录信息侵犯了你的权益？按本页说明提交，核实后即予以下架。",
+    body: () => `
+      <h2>先说明一件事</h2>
+      <p>本站<b>不托管、不存储、不分发任何软件文件</b>，页面上的链接均指向软件官方来源或代码托管平台。因此这里通常不涉及「删除文件」的诉求；如果你要处理的是第三方站点上的侵权文件，需要联系该站点的服务商。</p>
+      <p>本站能做的、也会做的是：<b>下架对应条目</b>（移除介绍文字、图标与跳转链接）。</p>
+
+      <h2>怎么提交</h2>
+      <p>请通过 <a href="${esc(SITE.issue)}" ${EXT_REL}>GitHub Issues 提交下架申请</a>，并在内容里写清：</p>
+      <ul>
+        <li>涉及的<b>条目名称或页面地址</b>（例如 <code>/tool/xxx.html</code>）</li>
+        <li>你的<b>身份</b>与<b>权利依据</b>（著作权人本人、授权代理人，或商标/名称权权利人，并附简要说明或凭证链接）</li>
+        <li>你的<b>诉求</b>（下架条目 / 修改描述 / 更换链接）</li>
+        <li>可接收回复的<b>联系方式</b></li>
+      </ul>
+      <p style="color:var(--muted);font-size:13px">公开 Issue 里请勿提交身份证件、合同等敏感材料原图，可只说明权利类型，必要时再约定其他渠道核验。</p>
+
+      <h2>处理时限</h2>
+      <p>收到申请后<b>3 个工作日内</b>核实并答复。经核实的有效申请会立即下架对应条目并重新构建站点（约 1 分钟生效）。对内容有争议的，站长倾向先下架再沟通。</p>
+
+      <h2>内容纠错</h2>
+      <p>如果只是信息过时、链接失效、描述有误，同样欢迎走上面的渠道反馈，这类问题通常当天处理。</p>
+    `
+  }
+];
+const LEGAL_SLUGS = LEGAL.map(p => p.slug);
 
 /* 分类渐变统一取自 data/categories.js 的 grad 字段（全站唯一来源，改一处三端生效） */
 const FALLBACK_GRAD = "linear-gradient(135deg,#10B981,#06B6D4)";
@@ -117,6 +244,8 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .go{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:11px 22px;border-radius:11px;background:linear-gradient(135deg,#34D399,var(--primary));color:#fff;box-shadow:var(--glow);transition:.15s}
 .go:hover{filter:brightness(1.07)}
 .dnote{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.8}
+.dnote a{color:var(--primary-l);font-weight:600}
+.dnote a:hover{text-decoration:underline}
 
 /* 分享区 */
 .share{margin-top:22px;padding-top:18px;border-top:1px dashed var(--line)}
@@ -153,11 +282,31 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .pager .pg-jump input{width:48px;height:34px;border:1px solid var(--line-strong);border-radius:8px;text-align:center;font-size:13.5px;outline:none;color:var(--ink);background:var(--card);font-family:inherit}
 .pager .pg-jump input:focus{border-color:var(--primary)}
 
+/* 合规页正文（P7） */
+.legalbody{font-size:14px;line-height:2;color:#334155}
+.legalbody h2{font-size:15.5px;font-weight:700;margin:24px 0 8px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.legalbody h2:first-child{margin-top:6px}
+.legalbody h2::before{content:"";width:4px;height:15px;border-radius:2px;flex-shrink:0;background:linear-gradient(180deg,var(--primary),#06B6D4)}
+.legalbody p{margin:0 0 10px}
+.legalbody ul{margin:0 0 12px;padding-left:20px}
+.legalbody li{margin:5px 0}
+.legalbody code{background:var(--card-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px}
+.legalbody a{color:var(--primary-l);font-weight:600}
+.legalbody a:hover{text-decoration:underline}
+.legalbody b{color:var(--ink)}
+.legalupd{font-size:12px;color:var(--muted);background:var(--card-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:0 0 6px;display:inline-block}
+.legalnav{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.legalnav a{font-size:12.5px;font-weight:600;color:#475569;background:var(--card-2);border:1px solid var(--line);border-radius:9px;padding:8px 14px}
+.legalnav a:hover{border-color:var(--primary);color:var(--primary-l)}
+
 footer{margin-top:34px;padding:24px 0 32px;text-align:center;color:var(--muted);font-size:12px;line-height:2;border-top:1px solid var(--line)}
 footer b{color:var(--ink)}
 footer nav{margin-bottom:8px;line-height:2.2}
 footer nav a{color:var(--primary-l);margin:0 7px;white-space:nowrap}
 footer nav a:hover{text-decoration:underline}
+footer nav.legal a{color:var(--muted);font-size:11.5px}
+footer nav.legal a:hover{color:var(--primary-l)}
+footer .ftcopy{font-size:11.5px;opacity:.9}
 @media (max-width:640px){.rgrid{grid-template-columns:1fr}.dcard,.chead{padding:18px}.cover{font-size:52px}.tcover{width:120px}.tool{gap:12px}}
 `;
 
@@ -359,8 +508,12 @@ ${body}
     <nav aria-label="分类导航">
       ${CATS.map(c => `<a href="${relRoot}/category/${c.slug}.html">${esc(c.key)}</a>`).join("")}
     </nav>
+    <nav class="legal" aria-label="关于与合规">
+      ${LEGAL.map(p => `<a href="${relRoot}/${p.slug}.html">${esc(p.nav)}</a>`).join("")}
+    </nav>
     <b>🧰 ${esc(SITE.name)}</b><br>
-    只收官方与开源来源 · 本站不提供二次打包文件
+    只收官方与开源来源 · 本站不提供二次打包文件<br>
+    <span class="ftcopy">© ${new Date().getFullYear()} ${esc(SITE.owner)} · 本站不托管、不分发任何软件</span>
   </div>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -470,7 +623,7 @@ function detailPage(t) {
       </div>
     </div>
 
-    <p class="dnote">下载与安装请认准上方官方地址，本站不提供任何二次打包文件。<br>链接失效或内容侵权，欢迎联系站长下架。</p>
+    <p class="dnote">下载与安装请认准上方官方地址，本站不提供任何二次打包文件。<br>链接失效、信息有误或内容侵权，请走<a href="../takedown.html">侵权下架通道</a>，3 个工作日内处理。</p>
   </article>
 
   ${related.length ? `
@@ -653,9 +806,51 @@ function notFoundPage() {
 }
 
 /* ============================================================
+ * 合规页（P7）：关于本站 / 免责声明 / 隐私政策 / 侵权下架
+ * ============================================================ */
+function legalPage(p) {
+  const canonical = `${SITE.url}/${p.slug}.html`;
+  const others = LEGAL.filter(x => x.slug !== p.slug);
+
+  const body = `
+  <nav class="crumb" aria-label="面包屑"><a href="./index.html">首页</a> › ${esc(p.title)}</nav>
+
+  <article class="dcard">
+    <h1 class="dtitle">${esc(p.title)}</h1>
+    <p class="legalupd">最后更新：${TODAY}</p>
+    <div class="legalbody">
+${p.body()}
+    </div>
+    <div class="legalnav">
+      ${others.map(x => `<a href="./${x.slug}.html">${esc(x.nav)}</a>`).join("")}
+      <a href="./index.html">← 回到首页</a>
+    </div>
+  </article>
+  `;
+
+  return shell({
+    title: `${p.title} | ${SITE.name}`,
+    desc: p.desc,
+    canonical,
+    ogImg: `${SITE.url}/logo.jpg`,
+    jsonld: {
+      "@context": "https://schema.org",
+      "@type": p.slug === "about" ? "AboutPage" : "WebPage",
+      name: p.title,
+      description: p.desc,
+      url: canonical,
+      inLanguage: "zh-CN",
+      isPartOf: { "@type": "WebSite", name: SITE.name, url: SITE.url },
+      publisher: { "@type": "Person", name: SITE.owner }
+    },
+    body,
+    relRoot: ""
+  });
+}
+/* ============================================================
  * 写入 + 统计
  * ============================================================ */
-let nTool = 0, nCat = 0;
+let nTool = 0, nCat = 0, nLegal = 0;
 for (const t of TOOLS) {
   fs.writeFileSync(path.join(root, "tool", `${t.slug}.html`), detailPage(t));
   nTool++;
@@ -664,11 +859,16 @@ for (const c of CATS) {
   fs.writeFileSync(path.join(root, "category", `${c.slug}.html`), categoryPage(c));
   nCat++;
 }
+for (const p of LEGAL) {
+  fs.writeFileSync(path.join(root, `${p.slug}.html`), legalPage(p));
+  nLegal++;
+}
 
 /* sitemap.xml */
 const urls = [
   { loc: `${SITE.url}/`, lastmod: TODAY, freq: "daily", pri: "1.0" },
   ...CATS.map(c => ({ loc: `${SITE.url}/category/${c.slug}.html`, lastmod: TODAY, freq: "weekly", pri: "0.8" })),
+  ...LEGAL.map(p => ({ loc: `${SITE.url}/${p.slug}.html`, lastmod: TODAY, freq: "yearly", pri: "0.3" })),
   ...TOOLS.map(t => ({ loc: `${SITE.url}/tool/${t.slug}.html`, lastmod: t.addedAt || TODAY, freq: "monthly", pri: "0.7" }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -704,4 +904,5 @@ fs.writeFileSync(path.join(root, "404.html"), notFoundPage());
 
 console.log(`详情页 ${nTool} 个 → tool/`);
 console.log(`分类页 ${nCat} 个 → category/`);
+console.log(`合规页 ${nLegal} 个 → ${LEGAL_SLUGS.join(", ")}`);
 console.log(`sitemap.xml（${urls.length} 条 URL）、robots.txt、404.html 已生成`);

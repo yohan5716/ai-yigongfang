@@ -141,7 +141,7 @@ main{padding:22px 0 90px}
     <span class="brand"><img src="logo.jpg" alt="">AI义工坊 <em>站长后台</em></span>
     <span class="sp"></span>
     <span class="pill" id="connPill"><span class="dot"></span>未连接</span>
-    <a class="btn ghost sm" href="index.html" target="_blank">查看站点</a>
+    <a class="btn ghost sm" href="index.html" target="_blank" rel="noopener">查看站点</a>
   </div>
 </header>
 
@@ -978,7 +978,7 @@ $("btnDoPub").addEventListener("click", async () => {
     result.innerHTML = `<div class="okbox">
       已提交 <b>${esc(c.path)}</b>。<br>
       GitHub Actions 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>
-      <a href="https://github.com/${esc(c.owner)}/${esc(c.repo)}/commits/${esc(c.branch)}" target="_blank" rel="noopener">查看提交记录 ↗</a>
+      <a href="https://github.com/${esc(c.owner)}/${esc(c.repo)}/commits/${esc(c.branch)}" target="_blank" rel="noopener noreferrer nofollow">查看提交记录 ↗</a>
     </div>`;
     toast("已提交到仓库", "ok");
   } catch (err) {
