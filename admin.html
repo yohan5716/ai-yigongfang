@@ -154,7 +154,7 @@ main{padding:22px 0 90px}
     </h2>
     <div class="body" id="connBody">
       <p class="hint" style="margin-bottom:14px">
-        工具条目存在 GitHub 仓库的 <code>data/tools.js</code> 里。填入仓库信息与访问令牌后，这条链路就是：<b>在这里改 → 提交到仓库 → Cloudflare 自动重新构建 → 站点更新</b>。
+        工具条目存在 GitHub 仓库的 <code>data/tools.js</code> 里。填入仓库信息与访问令牌后，这条链路就是：<b>在这里改 → 提交到仓库 → GitHub Actions 自动重新构建 → 站点更新</b>。
       </p>
       <div class="grid g4">
         <div><label for="fOwner">GitHub 用户名</label><input id="fOwner" placeholder="yourname" autocomplete="off"></div>
@@ -283,7 +283,7 @@ main{padding:22px 0 90px}
       <div class="field">
         <label for="pubMsg">提交说明</label>
         <input id="pubMsg" placeholder="更新工具条目">
-        <p class="tip">会同时提交 <code>data/*</code> 与重新生成的页面文件。提交后 Cloudflare Pages 会自动重新构建，约 1 分钟生效。</p>
+        <p class="tip">只提交 <code>data/tools.js</code> 这一个文件；详情页与分类页由 GitHub Actions 在推送后自动重新生成，约 1 分钟生效。</p>
       </div>
       <div id="pubResult"></div>
     </div>
@@ -316,6 +316,7 @@ const DEF_CATS = ["办公必备", "系统工具", "音视频处理", "Android应
 const DEF_PRICING = [
   ["free", "完全免费"], ["open", "开源免费"], ["freemium", "免费增值"], ["paid", "付费"]
 ];
+/* 离线兜底色板：仅在不连仓库时用于封面预览。连上仓库后以 data/categories.js 的 grad 为准。 */
 const CAT_GRAD = {
   "办公必备": "linear-gradient(135deg,#10B981,#059669)",
   "系统工具": "linear-gradient(135deg,#06B6D4,#0891B2)",
@@ -389,11 +390,14 @@ const state = {
   head: HEAD_TPL,
   tools: [],
   cats: DEF_CATS.slice(),
+  grads: {},          // 分类 -> 渐变，来自 categories.js；空则回落到 CAT_GRAD
   sha: null,          // data/tools.js 的 blob sha
-  catSha: null,
   dirty: false,
   baseline: ""        // 载入时的快照，用于判断是否有改动
 };
+
+/* 分类渐变：优先用 categories.js 里的，保证与前台/构建产物一致 */
+const gradOf = cat => state.grads[cat] || CAT_GRAD[cat] || CAT_GRAD["系统工具"];
 
 function snapshot() { return JSON.stringify(state.tools); }
 function markDirty() {
@@ -519,6 +523,24 @@ function buildToolsFile() {
   return state.head.replace(/\s*$/, "\n") + "\nwindow.SITE_TOOLS = [\n\n" + blocks.join("\n\n") + "\n\n];\n";
 }
 
+/* 从 categories.js 文本里取出分类定义，同步 key 与渐变色板（全站唯一来源） */
+function applyCategories(text) {
+  const i = text.indexOf("window.SITE_CATEGORIES");
+  if (i < 0) return;
+  const s = text.indexOf("[", i);
+  const e = text.lastIndexOf("]");
+  if (s < 0 || e < s) return;
+  let arr;
+  try { arr = new Function("return " + text.slice(s, e + 1))(); } catch (err) { return; }
+  if (!Array.isArray(arr) || !arr.length) return;
+
+  const keys = arr.map(x => x && x.key).filter(Boolean);
+  if (keys.length) state.cats = keys;
+  state.grads = Object.fromEntries(
+    arr.filter(x => x && x.key && x.grad).map(x => [x.key, x.grad])
+  );
+}
+
 /* ---------- 数据校验 ---------- */
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 function validate() {
@@ -558,7 +580,7 @@ function renderList() {
     box.innerHTML = `<div class="empty">还没有任何工具条目<br>点右上角「+ 新增工具」开始添加</div>`;
   } else {
     box.innerHTML = state.tools.map((t, i) => {
-      const grad = CAT_GRAD[t.category] || CAT_GRAD["系统工具"];
+      const grad = gradOf(t.category);
       const pub = (t.status || "published") === "published";
       const cover = t.cover ? `<img src="${esc(t.cover)}" alt="" onerror="this.remove()">` : esc(t.icon || "🔧");
       return `<div class="row ${pub ? "" : "draft"}">
@@ -621,9 +643,9 @@ $("btnToggleConn").addEventListener("click", () => {
 
 $("btnClearToken").addEventListener("click", () => {
   localStorage.removeItem(LS_TOKEN);
-  localStorage.removeItem(LS_CFG);
   $("fToken").value = "";
-  toast("已清除本地保存的令牌与仓库信息");
+  setConn("未连接", "");
+  toast("已清除浏览器里保存的令牌（仓库信息保留）");
 });
 
 $("btnConnect").addEventListener("click", async () => {
@@ -648,13 +670,7 @@ $("btnConnect").addEventListener("click", async () => {
     // 顺带读一次分类定义（失败不影响主流程）
     try {
       const catFile = await ghGetFile(c, "data/categories.js");
-      if (catFile) {
-        const m = catFile.text.match(/window\.SITE_CATEGORIES\s*=\s*(\[[\s\S]*?\]);/);
-        if (m) {
-          const arr = new Function("return " + m[1])();
-          if (Array.isArray(arr) && arr.length) state.cats = arr.map(x => x.key).filter(Boolean);
-        }
-      }
+      if (catFile) applyCategories(catFile.text);
     } catch (e) { }
 
     saveCfg();
@@ -663,7 +679,7 @@ $("btnConnect").addEventListener("click", async () => {
     renderList();
     setConn(`${c.owner}/${c.repo}`, "ok");
     msg.innerHTML = `<div class="okbox">已载入 ${state.tools.length} 条工具 · 数据来自 ${esc(c.owner)}/${esc(c.repo)} 的 ${esc(c.path)}（分支 ${esc(c.branch)}）</div>`;
-    $("footHint").textContent = "改动会提交到仓库，Cloudflare Pages 收到推送后自动重新构建页面。";
+    $("footHint").textContent = "改动会提交到仓库，GitHub Actions 收到推送后自动重新构建页面。";
     toast(`已载入 ${state.tools.length} 条工具`, "ok");
   } catch (err) {
     state.mode = "none";
@@ -811,7 +827,7 @@ function openEditor(i) {
 
 function paintCoverPrev(cover, icon, cat) {
   const el = $("eCoverPrev");
-  el.style.background = CAT_GRAD[cat] || CAT_GRAD["系统工具"];
+  el.style.background = gradOf(cat);
   el.innerHTML = cover
     ? `<img src="${esc(cover)}" alt="" onerror="this.parentNode.innerHTML='${esc(icon || "🔧")}'">`
     : esc(icon || "🔧");
@@ -871,7 +887,7 @@ $("btnSaveTool").addEventListener("click", () => {
   const dupSlug = state.tools.some((t, i) => t.slug === slug && i !== editingIndex);
   if (dupSlug) { toast(`slug 「${slug}」已被占用`, "err"); return; }
 
-  const split = v => v.split(",").map(s => s.trim()).filter(Boolean);
+  const split = v => v.split(/[,，]/).map(s => s.trim()).filter(Boolean);
   const rec = {
     id, slug,
     name,
@@ -897,11 +913,7 @@ $("btnSaveTool").addEventListener("click", () => {
   if (!rec.platform.length) delete rec.platform;
 
   if (editingIndex < 0) { state.tools.push(rec); toast(`已新增「${name}」，记得保存`); }
-  else {
-    // 保持原有键顺序更稳定：以旧对象为基础覆盖
-    state.tools[editingIndex] = rec;
-    toast(`已更新「${name}」，记得保存`);
-  }
+  else { state.tools[editingIndex] = rec; toast(`已更新「${name}」，记得保存`); }
   closeModal("mEdit");
   renderList();
 });
@@ -956,21 +968,16 @@ $("btnDoPub").addEventListener("click", async () => {
   btn.textContent = "提交中…";
   result.innerHTML = "";
 
-  const steps = [];
   try {
-    // 1) 提交数据文件
-    steps.push("data/tools.js");
     const r1 = await ghPutFile(c, c.path, buildToolsFile(), $("pubMsg").value.trim() || "更新工具条目", state.sha);
     state.sha = (r1.content && r1.content.sha) || (r1.commit && r1.commit.sha) || state.sha;
-
-    // 2) 首页内嵌的数据副本无需处理；分类文件通常不变，跳过
 
     state.baseline = snapshot();
     markDirty();
     renderList();
     result.innerHTML = `<div class="okbox">
-      已提交 <b>${steps.length}</b> 个文件。<br>
-      Cloudflare Pages 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>
+      已提交 <b>${esc(c.path)}</b>。<br>
+      GitHub Actions 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>
       <a href="https://github.com/${esc(c.owner)}/${esc(c.repo)}/commits/${esc(c.branch)}" target="_blank" rel="noopener">查看提交记录 ↗</a>
     </div>`;
     toast("已提交到仓库", "ok");

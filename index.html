@@ -435,7 +435,9 @@ footer nav a:hover{text-decoration:underline}
 
 const CONFIG = {
   siteName: "AI义工坊",
-  apiBase: "/api",                 // P6 阶段接入 Cloudflare Worker 点赞接口
+  siteUrl: "https://ygf.de5.net",   // 换域名时改这里（head 里的 canonical/og 需同步改）
+  themeKey: "aiygf:theme",         // 与 head 内联脚本里的键名保持一致
+  apiBase: "/api",                 // 点赞接口；GitHub Pages 上不存在时前端自动降级为种子数
   likeHistoryKey: "aiygf:liked",
   likeDeltaKey: "aiygf:likeDelta",
   favKey: "aiygf:favs"
@@ -466,16 +468,9 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
 };
 
-/* 卡片图标底色：按分类固定渐变，视觉上区分栏目 */
-const CAT_GRAD = {
-  "办公必备": "linear-gradient(135deg,#10B981,#059669)",
-  "系统工具": "linear-gradient(135deg,#06B6D4,#0891B2)",
-  "音视频处理": "linear-gradient(135deg,#F59E0B,#D97706)",
-  "Android应用": "linear-gradient(135deg,#10B981,#06B6D4)",
-  "教程": "linear-gradient(135deg,#34D399,#10B981)",
-  "资源推荐": "linear-gradient(135deg,#06B6D4,#10B981)"
-};
-const gradOf = c => CAT_GRAD[c] || "linear-gradient(135deg,#10B981,#06B6D4)";
+/* 卡片图标底色：渐变取自 data/categories.js 的 grad 字段（全站唯一来源） */
+const FALLBACK_GRAD = "linear-gradient(135deg,#10B981,#06B6D4)";
+const gradOf = c => (CAT_MAP[c] && CAT_MAP[c].grad) || FALLBACK_GRAD;
 
 /* ---------- 全局状态 ---------- */
 let curCat = "all";              // all | 分类 key | __fav
@@ -698,7 +693,7 @@ function fillItemList() {
   try {
     const data = JSON.parse(el.textContent);
     data.itemListElement = TOOLS.map((t, i) => ({
-      "@type": "ListItem", position: i + 1, name: t.name, url: `https://ygf.de5.net/tool/${t.slug}.html`
+      "@type": "ListItem", position: i + 1, name: t.name, url: `${CONFIG.siteUrl}/tool/${t.slug}.html`
     }));
     el.textContent = JSON.stringify(data);
   } catch (e) { }
@@ -735,7 +730,7 @@ function coverHTML(t, lazy) {
     ? `<img src="${esc(t.cover)}" alt="${esc(t.name)} 封面图" loading="${lazy ? "lazy" : "eager"}" onerror="this.closest('.tcover').classList.add('nocover')">`
     : "";
   return `<div class="tcover" style="background:${gradOf(t.category)}" aria-hidden="true">
-    ${t.new ? `<span class="tnew">NEW</span>` : ""}
+    ${isNew(t) ? `<span class="tnew">NEW</span>` : ""}
     <span>${esc(t.icon || "🔧")}</span>
     ${inner}
   </div>`;
@@ -744,12 +739,8 @@ function coverHTML(t, lazy) {
 function cardHTML(t) {
   const isFav = favs.has(t.id);
   const isLiked = liked.has(t.id);
-  const row = {
-    ...t,
-    new: isNew(t)
-  };
   return `<article class="tool" data-open="${esc(t.id)}" tabindex="0" role="link" aria-label="查看 ${esc(t.name)} 详情页">
-    ${coverHTML(row, true)}
+    ${coverHTML(t, true)}
     <div class="tbody">
       <button type="button" class="ttitle">${esc(t.name)}${t.featured ? '<em class="pick">站长推荐</em>' : ""}</button>
       <p class="tintro">简介 ${esc(t.description)}</p>
@@ -797,7 +788,7 @@ function renderPager(totalPages) {
 
   const nums = [1];
   for (let p = curPage - 1; p <= curPage + 1; p++) if (p > 1 && p < totalPages) nums.push(p);
-  if (totalPages > 1) nums.push(totalPages);
+  nums.push(totalPages);
   const uniq = [...new Set(nums)].sort((a, b) => a - b);
 
   let html = `<button type="button" data-page="${curPage - 1}" ${curPage === 1 ? "disabled" : ""}>‹ 上一页</button>`;
@@ -842,7 +833,7 @@ const FAB_ICONS = {
   top: '<svg viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'
 };
 
-let fabThemeMode = store.get("aiygf:theme", "light");
+let fabThemeMode = store.get(CONFIG.themeKey, "light");
 function paintFabTheme() {
   document.documentElement.classList.toggle("dark", fabThemeMode === "dark");
   $("fabTheme").innerHTML = fabThemeMode === "dark" ? FAB_ICONS.sun : FAB_ICONS.moon;
@@ -850,7 +841,7 @@ function paintFabTheme() {
 paintFabTheme();
 $("fabTheme").addEventListener("click", () => {
   fabThemeMode = fabThemeMode === "dark" ? "light" : "dark";
-  store.set("aiygf:theme", fabThemeMode);
+  store.set(CONFIG.themeKey, fabThemeMode);
   paintFabTheme();
 });
 
@@ -862,7 +853,7 @@ let fabQrLoaded = false;
 function fabPageUrl() {
   return (location.protocol === "http:" || location.protocol === "https:")
     ? location.href
-    : "https://ygf.de5.net/";   // file:// 本地预览时回落到线上地址
+    : CONFIG.siteUrl + "/";   // file:// 本地预览时回落到线上地址
 }
 function drawFabQr() {
   try {
@@ -907,13 +898,17 @@ function renderHot() {
  * 交互：筛选 / 排序 / 随机
  * ============================================================ */
 function syncActive() {
-  document.querySelectorAll(".cat,.tab").forEach(el => {
+  /* 分类卡片（.cat）是指向分类落地页的链接，不参与「选中」态，故不在此列 */
+  document.querySelectorAll(".tab").forEach(el => {
     const on = el.dataset.cat === curCat;
     el.classList.toggle("on", on);
-    if (el.tagName === "BUTTON") el.setAttribute("aria-pressed", String(on));
-    if (el.classList.contains("tab")) el.setAttribute("aria-selected", String(on));
+    el.setAttribute("aria-selected", String(on));
   });
-  document.querySelectorAll("#nav button[data-cat]").forEach(el => el.classList.toggle("on", el.dataset.cat === curCat));
+  document.querySelectorAll("#nav button[data-cat]").forEach(el => {
+    const on = el.dataset.cat === curCat;
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-pressed", String(on));
+  });
   document.querySelectorAll("#sortBox button").forEach(el => el.classList.toggle("on", el.dataset.sort === curSort));
 }
 

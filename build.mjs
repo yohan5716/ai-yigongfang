@@ -34,17 +34,12 @@ const SITE = {
   desc: "站长实测收录的免费工具导航目录，只收官方与开源来源，无广告无捆绑。"
 };
 
-const CAT_GRAD = {
-  "办公必备": "linear-gradient(135deg,#10B981,#059669)",
-  "系统工具": "linear-gradient(135deg,#06B6D4,#0891B2)",
-  "音视频处理": "linear-gradient(135deg,#F59E0B,#D97706)",
-  "Android应用": "linear-gradient(135deg,#10B981,#06B6D4)",
-  "教程": "linear-gradient(135deg,#34D399,#10B981)",
-  "资源推荐": "linear-gradient(135deg,#06B6D4,#10B981)"
-};
-const gradOf = c => CAT_GRAD[c] || "linear-gradient(135deg,#10B981,#06B6D4)";
+/* 分类渐变统一取自 data/categories.js 的 grad 字段（全站唯一来源，改一处三端生效） */
+const FALLBACK_GRAD = "linear-gradient(135deg,#10B981,#06B6D4)";
+const gradOf = c => (CAT_MAP[c] && CAT_MAP[c].grad) || FALLBACK_GRAD;
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = n => Number(n) || 0;
 const fmtDate = iso => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "—" : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
 const isNew = t => { const ts = new Date(t.addedAt).getTime(); return Number.isFinite(ts) && (Date.now() - ts) < 7 * 864e5; };
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -512,7 +507,7 @@ function detailPage(t) {
 function categoryPage(c) {
   const list = TOOLS
     .filter(t => t.category === c.key)
-    .sort((a, b) => (Number(!!b.featured) - Number(!!a.featured)) || (b.likes - a.likes));
+    .sort((a, b) => (Number(!!b.featured) - Number(!!a.featured)) || (num(b.likes) - num(a.likes)));
   const canonical = `${SITE.url}/category/${c.slug}.html`;
   const desc = oneLine(`${c.key}：${c.sub}。${c.desc}`, 96);
 

@@ -2,7 +2,7 @@
  * GET /api/likes?ids=pixpin,utools,...
  * ------------------------------------------------------------
  * 返回这批工具的「增量点赞数」（不含 tools.js 里的种子数）。
- * 响应：{ counts: { pixpin: 12, utools: 3 }, kv: true }
+ * 响应：{ counts: { pixpin: 12, utools: 3 } }
  * 没有增量的 id 不会出现在 counts 里，前端按 0 处理。
  * ============================================================ */
 import { json, isValidId, readDelta, MAX_IDS, KV_MISSING, preflight } from "./_shared.js";
