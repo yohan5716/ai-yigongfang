@@ -735,6 +735,8 @@ $("btnCheck").addEventListener("click", () => {
 });
 
 /* ---------- 列表操作 ---------- */
+$("btnAdd").addEventListener("click", () => openEditor(-1));
+
 $("rows").addEventListener("click", e => {
   const btn = e.target.closest("button[data-edit],button[data-del],button[data-toggle],button[data-up],button[data-down]");
   if (!btn) return;
