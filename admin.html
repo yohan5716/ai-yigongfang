@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>站长后台 · AI义工坊</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#10B981">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧰</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#10B981;--primary-l:#059669;--primary-d:#047857;
+  --cyan:#06B6D4;--cyan-d:#0E7490;
+  --ink:#0f172a;--text:#334155;--muted:#64748b;--faint:#94a3b8;
+  --line:#e4e9ef;--line-2:#eef2f6;--card:#fff;--card-2:#f7fafc;--bg:#f4f8fa;
+  --danger:#DC2626;--danger-bg:rgba(220,38,38,.08);
+  --warn:#B45309;--warn-bg:rgba(245,158,11,.14);
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.05);
+}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;font-size:14px}
+a{color:var(--primary-l);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:14px;width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);transition:.15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.14)}
+textarea{resize:vertical;min-height:78px;line-height:1.75}
+label{font-size:12.5px;font-weight:600;color:var(--text);display:block;margin-bottom:5px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+
+/* ---------- 顶栏 ---------- */
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header .wrap{display:flex;align-items:center;gap:12px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px}
+.brand img{width:32px;height:32px;border-radius:9px;object-fit:cover;display:block}
+.brand em{font-style:normal;font-size:11.5px;font-weight:600;color:var(--muted);background:var(--card-2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+header .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px;background:var(--card-2);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{background:rgba(16,185,129,.12);color:var(--primary-d);border-color:rgba(16,185,129,.3)}
+.pill.warn{background:var(--warn-bg);color:var(--warn);border-color:rgba(245,158,11,.35)}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+main{padding:22px 0 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px}
+.card>h2{font-size:14px;font-weight:700;padding:14px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:8px}
+.card>h2 .n{width:20px;height:20px;border-radius:6px;background:rgba(16,185,129,.14);color:var(--primary-d);font-size:11.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card>h2 .sp{flex:1}
+.card .body{padding:16px 18px}
+.card .body.tight{padding:14px 18px}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.8}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ---------- 按钮 ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 15px;border-radius:9px;font-size:13px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid transparent}
+.btn.primary{background:linear-gradient(135deg,#34D399,var(--primary));color:#fff;box-shadow:0 2px 10px rgba(16,185,129,.28)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{background:#fff;border-color:var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--primary);color:var(--primary-l)}
+.btn.soft{background:var(--card-2);border-color:var(--line);color:var(--text)}
+.btn.soft:hover{background:#fff;border-color:var(--primary);color:var(--primary-l)}
+.btn.danger{background:var(--danger-bg);color:var(--danger)}
+.btn.danger:hover{background:rgba(220,38,38,.14)}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn.sm{padding:5px 11px;font-size:12.5px;border-radius:8px}
+.btn[hidden]{display:none}
+
+/* ---------- 工具行 ---------- */
+.rows{border-top:1px solid var(--line-2)}
+.row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--line-2);transition:.12s}
+.row:hover{background:var(--card-2)}
+.row.draft{background:rgba(100,116,139,.05)}
+.row.draft .rname{color:var(--muted)}
+.rio{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;overflow:hidden;position:relative}
+.rio img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rmain{flex:1;min-width:0}
+.rname{font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.4}
+.rname .star{font-size:10px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--cyan));padding:1.5px 6px;border-radius:6px}
+.rmeta{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.rmeta code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--card-2);border:1px solid var(--line);padding:1px 6px;border-radius:5px;color:var(--faint)}
+.rnum{font-size:12.5px;color:var(--muted);white-space:nowrap;min-width:56px;text-align:right}
+.racts{display:flex;gap:5px;flex-shrink:0}
+@media(max-width:720px){
+  .row{flex-wrap:wrap;padding:13px 14px}
+  .rnum{min-width:auto}
+  .racts{width:100%;justify-content:flex-end;margin-top:4px}
+}
+.empty{text-align:center;color:var(--muted);padding:46px 20px;font-size:13.5px;line-height:2}
+
+/* ---------- 弹窗 ---------- */
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:26px 14px;z-index:60;overflow-y:auto}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:700px;box-shadow:0 24px 70px rgba(15,23,42,.3);animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+.modal header{position:static;border-bottom:1px solid var(--line);border-radius:16px 16px 0 0;display:flex;align-items:center;padding:14px 18px;height:auto;gap:10px}
+.modal header h3{font-size:15px;font-weight:700;flex:1}
+.modal header .x{font-size:19px;color:var(--muted);line-height:1;padding:3px 7px;border-radius:7px}
+.modal header .x:hover{background:var(--card-2);color:var(--ink)}
+.modal .mbody{padding:18px;max-height:calc(100vh - 220px);overflow-y:auto}
+.modal footer{padding:13px 18px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end;background:var(--card-2);border-radius:0 0 16px 16px}
+.field{margin-bottom:13px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.frow3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+@media(max-width:620px){.frow,.frow3{grid-template-columns:1fr}}
+.tip{font-size:11.5px;color:var(--faint);margin-top:4px;line-height:1.6}
+.chk{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--card-2);border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}
+.chk input{width:auto;margin:0}
+.coverbox{display:flex;gap:10px;align-items:center}
+.coverbox .prev{width:78px;height:50px;border-radius:8px;background:var(--card-2);border:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden}
+.coverbox .prev img{width:100%;height:100%;object-fit:cover}
+.coverbox .c1{flex:1;min-width:0}
+
+/* 状态标签 */
+.st{font-size:11.5px;font-weight:700;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
+.st.pub{background:rgba(16,185,129,.14);color:var(--primary-d)}
+.st.dr{background:rgba(100,116,139,.13);color:#475569}
+
+/* ---------- 提示条 ---------- */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;font-size:13.5px;padding:11px 20px;border-radius:11px;box-shadow:0 10px 30px rgba(15,23,42,.3);opacity:0;pointer-events:none;transition:.22s;z-index:120;max-width:88vw;text-align:center;line-height:1.6}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#toast.err{background:#B91C1C}
+#toast.ok{background:#047857}
+
+/* ---------- 底部操作栏 ---------- */
+.actionbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:30}
+.actionbar .wrap{display:flex;align-items:center;gap:10px;padding:11px 18px}
+.actionbar .msg{flex:1;font-size:12.5px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:560px){.actionbar .msg{display:none}}
+.warnbox{background:var(--warn-bg);border:1px solid rgba(245,158,11,.35);color:#78350F;font-size:12.5px;line-height:1.8;padding:11px 14px;border-radius:10px}
+.okbox{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.28);color:var(--primary-d);font-size:12.5px;line-height:1.8;padding:11px 14px;border-radius:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="brand"><img src="logo.jpg" alt="">AI义工坊 <em>站长后台</em></span>
+    <span class="sp"></span>
+    <span class="pill" id="connPill"><span class="dot"></span>未连接</span>
+    <a class="btn ghost sm" href="index.html" target="_blank">查看站点</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 连接设置 -->
+  <section class="card">
+    <h2><span class="n">1</span>连接数据仓库<span class="sp"></span>
+      <button class="btn soft sm" id="btnToggleConn" aria-expanded="true">收起</button>
+    </h2>
+    <div class="body" id="connBody">
+      <p class="hint" style="margin-bottom:14px">
+        工具条目存在 GitHub 仓库的 <code>data/tools.js</code> 里。填入仓库信息与访问令牌后，这条链路就是：<b>在这里改 → 提交到仓库 → Cloudflare 自动重新构建 → 站点更新</b>。
+      </p>
+      <div class="grid g4">
+        <div><label for="fOwner">GitHub 用户名</label><input id="fOwner" placeholder="yourname" autocomplete="off"></div>
+        <div><label for="fRepo">仓库名</label><input id="fRepo" placeholder="ai-yigongfang" autocomplete="off"></div>
+        <div><label for="fBranch">分支</label><input id="fBranch" placeholder="main" autocomplete="off"></div>
+        <div><label for="fPath">数据文件路径</label><input id="fPath" placeholder="data/tools.js" autocomplete="off"></div>
+      </div>
+      <div class="field" style="margin-top:13px">
+        <label for="fToken">访问令牌（Fine-grained PAT）</label>
+        <input id="fToken" type="password" placeholder="github_pat_..." autocomplete="off">
+        <p class="tip">只需该仓库的 <b>Contents: Read and write</b> 权限。令牌只保存在你自己浏览器的本地存储里，不会发往任何第三方。</p>
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn primary" id="btnConnect">连接并载入数据</button>
+        <button class="btn ghost" id="btnLocalFile">改用本地文件</button>
+        <button class="btn soft" id="btnClearToken">清除已存令牌</button>
+      </div>
+      <div id="connMsg" style="margin-top:13px"></div>
+    </div>
+  </section>
+
+  <!-- 工具列表 -->
+  <section class="card" id="listCard" hidden>
+    <h2><span class="n">2</span>工具条目 <span id="cntLabel" style="color:var(--muted);font-weight:600;font-size:12.5px"></span>
+      <span class="sp"></span>
+      <button class="btn soft sm" id="btnAdd">+ 新增工具</button>
+    </h2>
+    <div class="body tight" style="display:flex;gap:9px;flex-wrap:wrap;border-bottom:1px solid var(--line-2)">
+      <button class="btn ghost sm" id="btnExport">导出 tools.js</button>
+      <button class="btn ghost sm" id="btnImport">导入本地文件</button>
+      <button class="btn ghost sm" id="btnReload">重新载入</button>
+      <span class="sp" style="flex:1"></span>
+      <button class="btn soft sm" id="btnCheck">检查数据</button>
+    </div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <p class="hint" style="text-align:center;padding:6px 0 0" id="footHint"></p>
+</main>
+
+<!-- 底部操作栏 -->
+<div class="actionbar" id="actionbar" hidden>
+  <div class="wrap">
+    <span class="msg" id="barMsg"></span>
+    <button class="btn ghost sm" id="btnDiscard">放弃改动</button>
+    <button class="btn primary" id="btnPublish" disabled>保存并发布</button>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="mask" id="mEdit">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <header>
+      <h3 id="edTitle">编辑工具</h3>
+      <button class="x" data-close="mEdit" aria-label="关闭">✕</button>
+    </header>
+    <div class="mbody">
+      <div class="frow3">
+        <div class="field"><label for="eId">id <span style="color:var(--danger)">*</span></label><input id="eId" placeholder="pixpin"><p class="tip">小写字母/数字/连字符，全局唯一。改了会让已有的点赞记录失联。</p></div>
+        <div class="field"><label for="eSlug">slug <span style="color:var(--danger)">*</span></label><input id="eSlug" placeholder="pixpin"><p class="tip">决定详情页地址 /tool/slug.html，建议与 id 一致。</p></div>
+        <div class="field"><label for="eIcon">图标（emoji）</label><input id="eIcon" placeholder="📷" maxlength="4"><p class="tip">没有封面图时显示。</p></div>
+      </div>
+
+      <div class="frow">
+        <div class="field"><label for="eName">工具名 <span style="color:var(--danger)">*</span></label><input id="eName" placeholder="PixPin"></div>
+        <div class="field"><label for="eCategory">分类 <span style="color:var(--danger)">*</span></label><select id="eCategory"></select></div>
+      </div>
+
+      <div class="field"><label for="eTagline">一句话简介 <span style="color:var(--danger)">*</span></label><input id="eTagline" placeholder="截图贴图长截图 OCR 一体化" maxlength="40"><p class="tip">列表行上显示，建议 16 字以内。</p></div>
+      <div class="field"><label for="eDesc">详细介绍</label><textarea id="eDesc" placeholder="2–4 句，说清楚它解决什么问题、适合谁用。"></textarea></div>
+
+      <div class="field">
+        <label for="eTags">标签</label>
+        <input id="eTags" placeholder="截图, 贴图, OCR">
+        <p class="tip">用逗号分隔，建议 2–4 个。</p>
+      </div>
+
+      <div class="frow">
+        <div class="field"><label for="eUrl">官网 / 下载地址 <span style="color:var(--danger)">*</span></label><input id="eUrl" placeholder="https://pixpin.cn"></div>
+        <div class="field"><label for="eGithub">开源仓库地址</label><input id="eGithub" placeholder="https://github.com/... （选填）"><p class="tip">填了之后，列表行按钮会显示「GitHub ↗」而非「官网 ↗」。</p></div>
+      </div>
+
+      <div class="frow3">
+        <div class="field"><label for="ePricing">收费模式</label><select id="ePricing"></select></div>
+        <div class="field"><label for="eAdded">收录日期</label><input id="eAdded" type="date"></div>
+        <div class="field"><label for="eLikes">点赞种子数</label><input id="eLikes" type="number" min="0" step="1" placeholder="0"><p class="tip">线上展示 = 种子数 + 真实互动量。</p></div>
+      </div>
+
+      <div class="field">
+        <label for="ePlatform">支持平台</label>
+        <input id="ePlatform" placeholder="Windows, macOS">
+        <p class="tip">用逗号分隔，留空显示「全平台」。</p>
+      </div>
+
+      <div class="field">
+        <label>封面图</label>
+        <div class="coverbox">
+          <span class="prev" id="eCoverPrev">🖼</span>
+          <div class="c1">
+            <input id="eCover" placeholder="images/covers/pixpin.jpg （留空则用图标）">
+            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传一张。</p>
+          </div>
+          <button class="btn soft sm" id="btnUpload" type="button">上传</button>
+          <input type="file" id="fileCover" accept="image/*" hidden>
+        </div>
+      </div>
+
+      <div class="frow">
+        <label class="chk"><input type="checkbox" id="eFeatured"> 设为「站长推荐」</label>
+        <label class="chk"><input type="checkbox" id="ePublished"> 已发布（取消勾选 = 仅存草稿，站点不显示）</label>
+      </div>
+    </div>
+    <footer>
+      <button class="btn ghost" data-close="mEdit">取消</button>
+      <button class="btn primary" id="btnSaveTool">确定</button>
+    </footer>
+  </div>
+</div>
+
+<!-- 提交弹窗 -->
+<div class="mask" id="mPub">
+  <div class="modal" style="max-width:520px" role="dialog" aria-modal="true">
+    <header><h3>保存并发布</h3><button class="x" data-close="mPub" aria-label="关闭">✕</button></header>
+    <div class="mbody">
+      <div id="pubSummary" class="okbox" style="margin-bottom:14px"></div>
+      <div class="field">
+        <label for="pubMsg">提交说明</label>
+        <input id="pubMsg" placeholder="更新工具条目">
+        <p class="tip">会同时提交 <code>data/*</code> 与重新生成的页面文件。提交后 Cloudflare Pages 会自动重新构建，约 1 分钟生效。</p>
+      </div>
+      <div id="pubResult"></div>
+    </div>
+    <footer>
+      <button class="btn ghost" data-close="mPub">关闭</button>
+      <button class="btn primary" id="btnDoPub">确认提交</button>
+    </footer>
+  </div>
+</div>
+
+<!-- 导入文件 -->
+<input type="file" id="fileImport" accept=".js,.json,text/javascript" hidden>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+ * AI义工坊 · 站长后台（P5）
+ * ------------------------------------------------------------
+ * 纯前端，无服务端。数据读写全部走 GitHub Contents API：
+ *   读 data/tools.js  → 解析数组 → 可视化编辑 → 序列化 → 提交
+ * 令牌仅存 localStorage，权限收紧到该仓库的 Contents 读写。
+ * 不连仓库时可用「本地文件」模式：导入 tools.js，改完导出覆盖。
+ * ============================================================ */
+
+const LS_CFG = "aiygf:admin:cfg";
+const LS_TOKEN = "aiygf:admin:token";
+
+const DEF_CATS = ["办公必备", "系统工具", "音视频处理", "Android应用", "教程", "资源推荐"];
+const DEF_PRICING = [
+  ["free", "完全免费"], ["open", "开源免费"], ["freemium", "免费增值"], ["paid", "付费"]
+];
+const CAT_GRAD = {
+  "办公必备": "linear-gradient(135deg,#10B981,#059669)",
+  "系统工具": "linear-gradient(135deg,#06B6D4,#0891B2)",
+  "音视频处理": "linear-gradient(135deg,#F59E0B,#D97706)",
+  "Android应用": "linear-gradient(135deg,#10B981,#06B6D4)",
+  "教程": "linear-gradient(135deg,#34D399,#10B981)",
+  "资源推荐": "linear-gradient(135deg,#06B6D4,#10B981)"
+};
+
+/* 字段分组：决定序列化后每行放哪些字段，尽量贴近手工维护的可读格式 */
+const FIELD_LINES = [
+  ["id", "slug", "name", "icon", "cover"],
+  ["tagline"],
+  ["description"],
+  ["category", "tags"],
+  ["url", "github", "platform"],
+  ["pricing", "featured", "addedAt", "status", "likes"]
+];
+
+const HEAD_TPL = `/* ============================================================
+ * AI义工坊 · 工具条目数据（唯一数据源）
+ * ------------------------------------------------------------
+ * 本文件由 /admin 站长后台维护，也可以手工编辑。
+ *
+ * ⚠️ 新增条目必须遵守以下约束，否则静态页面生成器会报错：
+ *   - id   全局唯一，只用小写字母/数字/连字符
+ *   - slug 全局唯一（决定详情页 URL：/tool/<slug>.html），同上字符集
+ *   - category 必须是 categories.js 里已有的 key
+ *   - status 为 "published" 才会出现在前台
+ * ============================================================ */
+`;
+
+/* ---------- 基础工具 ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+let toastTimer = null;
+function toast(msg, kind) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.className = "show" + (kind ? " " + kind : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ""; }, kind === "err" ? 5200 : 2800);
+}
+
+function b64enc(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+function b64dec(b64) {
+  const bin = atob(String(b64).replace(/\s/g, ""));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function bufToB64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+const today = () => new Date().toISOString().slice(0, 10);
+
+/* ---------- 状态 ---------- */
+const state = {
+  mode: "none",       // none | github | local
+  head: HEAD_TPL,
+  tools: [],
+  cats: DEF_CATS.slice(),
+  sha: null,          // data/tools.js 的 blob sha
+  catSha: null,
+  dirty: false,
+  baseline: ""        // 载入时的快照，用于判断是否有改动
+};
+
+function snapshot() { return JSON.stringify(state.tools); }
+function markDirty() {
+  state.dirty = snapshot() !== state.baseline;
+  paintBar();
+}
+
+/* ---------- 配置读写 ---------- */
+function loadCfg() {
+  let cfg = {};
+  try { cfg = JSON.parse(localStorage.getItem(LS_CFG) || "{}"); } catch (e) { cfg = {}; }
+  $("fOwner").value = cfg.owner || "";
+  $("fRepo").value = cfg.repo || "";
+  $("fBranch").value = cfg.branch || "main";
+  $("fPath").value = cfg.path || "data/tools.js";
+  $("fToken").value = localStorage.getItem(LS_TOKEN) || "";
+}
+function saveCfg() {
+  localStorage.setItem(LS_CFG, JSON.stringify({
+    owner: $("fOwner").value.trim(),
+    repo: $("fRepo").value.trim(),
+    branch: $("fBranch").value.trim() || "main",
+    path: $("fPath").value.trim() || "data/tools.js"
+  }));
+  if ($("fToken").value.trim()) localStorage.setItem(LS_TOKEN, $("fToken").value.trim());
+}
+function cfg() {
+  return {
+    owner: $("fOwner").value.trim(),
+    repo: $("fRepo").value.trim(),
+    branch: $("fBranch").value.trim() || "main",
+    path: $("fPath").value.trim() || "data/tools.js",
+    token: $("fToken").value.trim()
+  };
+}
+
+/* ---------- GitHub Contents API ---------- */
+const API = "https://api.github.com";
+function ghHeaders(token) {
+  return {
+    "Authorization": "Bearer " + token,
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+}
+async function ghGetFile(c, filePath) {
+  const url = `${API}/repos/${c.owner}/${c.repo}/contents/${filePath}?ref=${encodeURIComponent(c.branch)}&t=${Date.now()}`;
+  const r = await fetch(url, { headers: ghHeaders(c.token), cache: "no-store" });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(await ghErr(r));
+  const j = await r.json();
+  if (j.content && j.encoding === "base64") return { text: b64dec(j.content), sha: j.sha };
+  // 大文件会返回 download_url 而不带 content
+  const raw = await fetch(j.download_url, { cache: "no-store" });
+  return { text: await raw.text(), sha: j.sha };
+}
+async function ghPutFile(c, filePath, text, message, sha) {
+  const url = `${API}/repos/${c.owner}/${c.repo}/contents/${filePath}`;
+  const body = { message, content: b64enc(text), branch: c.branch };
+  if (sha) body.sha = sha;
+  const r = await fetch(url, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders(c.token)), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await ghErr(r));
+  return r.json();
+}
+async function ghErr(r) {
+  let detail = "";
+  try {
+    const j = await r.json();
+    detail = j.message || "";
+    if (j.errors && j.errors.length) detail += " · " + j.errors.map(e => e.message || JSON.stringify(e)).join("; ");
+  } catch (e) { }
+  if (r.status === 401) return `令牌无效或已过期（401）。${detail}`;
+  if (r.status === 403) return `权限不足或已触发限流（403）。请确认令牌勾选了该仓库的 Contents: Read and write。${detail}`;
+  if (r.status === 404) return `仓库或路径找不到（404）。请核对用户名 / 仓库名 / 分支 / 文件路径。${detail}`;
+  if (r.status === 409) return `提交冲突（409）：仓库中的文件已被他人改动，请点「重新载入」后再改。${detail}`;
+  return `请求失败（${r.status}）。${detail}`;
+}
+
+/* ---------- tools.js 解析与序列化 ---------- */
+function parseToolsFile(src) {
+  const idx = src.indexOf("window.SITE_TOOLS");
+  if (idx < 0) throw new Error("文件里找不到 window.SITE_TOOLS，请确认路径正确");
+  const head = src.slice(0, idx);
+  const body = src.slice(idx);
+  const open = body.indexOf("[");
+  const close = body.lastIndexOf("]");
+  if (open < 0 || close < 0) throw new Error("数组格式不完整，无法解析");
+  const arr = new Function("return " + body.slice(open, close + 1))();
+  if (!Array.isArray(arr)) throw new Error("解析结果不是数组");
+  return { head: head.trim() ? head.replace(/\s*$/, "\n\n") : HEAD_TPL, tools: arr };
+}
+
+const fmtVal = v => Array.isArray(v) ? "[" + v.map(x => JSON.stringify(x)).join(", ") + "]" : JSON.stringify(v);
+
+function serializeTool(t, indent) {
+  const pad = indent + "  ";
+  const lines = [];
+  for (const group of FIELD_LINES) {
+    const parts = [];
+    for (const k of group) {
+      const v = t[k];
+      if (v === undefined || v === null || v === "") continue;
+      if (Array.isArray(v) && !v.length) continue;
+      parts.push(`${k}: ${fmtVal(v)}`);
+    }
+    if (parts.length) lines.push(pad + parts.join(", "));
+  }
+  return indent + "{\n" + lines.join(",\n") + "\n" + indent + "}";
+}
+
+function buildToolsFile() {
+  const cats = state.cats.slice();
+  const groups = {};
+  state.tools.forEach(t => { const k = t.category || "未分类"; (groups[k] = groups[k] || []).push(t); });
+  const order = cats.concat(Object.keys(groups).filter(k => !cats.includes(k)));
+
+  const blocks = [];
+  for (const k of order) {
+    const list = groups[k];
+    if (!list || !list.length) continue;
+    blocks.push(`  /* ---------- ${k} ---------- */\n` + list.map(t => serializeTool(t, "  ") + ",").join("\n"));
+  }
+  return state.head.replace(/\s*$/, "\n") + "\nwindow.SITE_TOOLS = [\n\n" + blocks.join("\n\n") + "\n\n];\n";
+}
+
+/* ---------- 数据校验 ---------- */
+const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
+function validate() {
+  const errs = [];
+  const seenId = {}, seenSlug = {};
+  state.tools.forEach((t, i) => {
+    const who = t.name || t.id || `第 ${i + 1} 条`;
+    if (!t.id) errs.push(`${who}：缺少 id`);
+    else if (!ID_RE.test(t.id)) errs.push(`${who}：id 「${t.id}」只能用小写字母、数字和连字符`);
+    else if (seenId[t.id]) errs.push(`${who}：id 「${t.id}」与前面的条目重复`);
+    else seenId[t.id] = 1;
+
+    if (!t.slug) errs.push(`${who}：缺少 slug`);
+    else if (!ID_RE.test(t.slug)) errs.push(`${who}：slug 「${t.slug}」字符不合法`);
+    else if (seenSlug[t.slug]) errs.push(`${who}：slug 「${t.slug}」与前面的条目重复`);
+    else seenSlug[t.slug] = 1;
+
+    if (!t.name) errs.push(`${who}：缺少工具名`);
+    if (!t.tagline) errs.push(`${who}：缺少一句话简介`);
+    if (!t.category) errs.push(`${who}：未选分类`);
+    else if (!state.cats.includes(t.category)) errs.push(`${who}：分类「${t.category}」不在 categories.js 里`);
+    if (!t.url && !t.github) errs.push(`${who}：至少需要官网地址或开源仓库中的一个`);
+    if (t.status && t.status !== "published" && t.status !== "draft") errs.push(`${who}：status 只能是 published 或 draft`);
+  });
+  return errs;
+}
+
+/* ---------- 渲染列表 ---------- */
+function renderCats() {
+  $("eCategory").innerHTML = state.cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("ePricing").innerHTML = DEF_PRICING.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+}
+
+function renderList() {
+  const box = $("rows");
+  if (!state.tools.length) {
+    box.innerHTML = `<div class="empty">还没有任何工具条目<br>点右上角「+ 新增工具」开始添加</div>`;
+  } else {
+    box.innerHTML = state.tools.map((t, i) => {
+      const grad = CAT_GRAD[t.category] || CAT_GRAD["系统工具"];
+      const pub = (t.status || "published") === "published";
+      const cover = t.cover ? `<img src="${esc(t.cover)}" alt="" onerror="this.remove()">` : esc(t.icon || "🔧");
+      return `<div class="row ${pub ? "" : "draft"}">
+        <span class="rio" style="background:${grad}">${cover}</span>
+        <div class="rmain">
+          <div class="rname">${esc(t.name || "(未命名)")}${t.featured ? '<span class="star">推荐</span>' : ""}</div>
+          <div class="rmeta">
+            <code>${esc(t.slug || "—")}</code>
+            <span>${esc(t.category || "未分类")}</span>
+            <span>${esc(t.addedAt || "无日期")}</span>
+          </div>
+        </div>
+        <span class="st ${pub ? "pub" : "dr"}">${pub ? "已发布" : "草稿"}</span>
+        <span class="rnum">${Number(t.likes || 0).toLocaleString()} 赞</span>
+        <div class="racts">
+          <button class="btn soft sm" data-up="${i}" title="上移" ${i === 0 ? "disabled" : ""}>↑</button>
+          <button class="btn soft sm" data-down="${i}" title="下移" ${i === state.tools.length - 1 ? "disabled" : ""}>↓</button>
+          <button class="btn soft sm" data-edit="${i}">编辑</button>
+          <button class="btn soft sm" data-toggle="${i}">${pub ? "下架" : "上架"}</button>
+          <button class="btn danger sm" data-del="${i}">删除</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  const pub = state.tools.filter(t => (t.status || "published") === "published").length;
+  $("cntLabel").textContent = `共 ${state.tools.length} 条 · 已发布 ${pub} · 草稿 ${state.tools.length - pub}`;
+  $("listCard").hidden = false;
+  markDirty();
+}
+
+function paintBar() {
+  $("actionbar").hidden = state.mode === "none";
+  const btn = $("btnPublish");
+  $("btnDiscard").disabled = !state.dirty;
+  if (state.mode === "local") {
+    btn.textContent = "导出文件";
+    btn.disabled = false;
+    $("barMsg").textContent = state.dirty ? "有未导出的改动（本地模式：导出后需自行替换文件）" : "本地模式 · 改动后导出覆盖 data/tools.js";
+  } else {
+    btn.textContent = "保存并发布";
+    btn.disabled = !state.dirty;
+    $("barMsg").textContent = state.dirty ? "有未保存的改动" : "所有改动已保存";
+  }
+}
+
+function setConn(stateText, kind) {
+  const p = $("connPill");
+  p.className = "pill" + (kind ? " " + kind : "");
+  p.innerHTML = `<span class="dot"></span>${esc(stateText)}`;
+}
+
+/* ---------- 连接 ---------- */
+$("btnToggleConn").addEventListener("click", () => {
+  const body = $("connBody"), btn = $("btnToggleConn");
+  const open = body.style.display !== "none";
+  body.style.display = open ? "none" : "";
+  btn.textContent = open ? "展开" : "收起";
+  btn.setAttribute("aria-expanded", String(!open));
+});
+
+$("btnClearToken").addEventListener("click", () => {
+  localStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_CFG);
+  $("fToken").value = "";
+  toast("已清除本地保存的令牌与仓库信息");
+});
+
+$("btnConnect").addEventListener("click", async () => {
+  const c = cfg();
+  const msg = $("connMsg");
+  if (!c.owner || !c.repo) { msg.innerHTML = `<div class="warnbox">请先填写 GitHub 用户名和仓库名。</div>`; return; }
+  if (!c.token) { msg.innerHTML = `<div class="warnbox">请填写访问令牌（PAT）。没有令牌就只能用「本地文件」模式。</div>`; return; }
+
+  $("btnConnect").disabled = true;
+  $("btnConnect").textContent = "连接中…";
+  msg.innerHTML = "";
+  try {
+    const toolsFile = await ghGetFile(c, c.path);
+    if (!toolsFile) throw new Error(`仓库里找不到 ${c.path}，请核对路径，或确认仓库是该令牌授权的那个。`);
+
+    const parsed = parseToolsFile(toolsFile.text);
+    state.mode = "github";
+    state.head = parsed.head;
+    state.tools = parsed.tools;
+    state.sha = toolsFile.sha;
+
+    // 顺带读一次分类定义（失败不影响主流程）
+    try {
+      const catFile = await ghGetFile(c, "data/categories.js");
+      if (catFile) {
+        const m = catFile.text.match(/window\.SITE_CATEGORIES\s*=\s*(\[[\s\S]*?\]);/);
+        if (m) {
+          const arr = new Function("return " + m[1])();
+          if (Array.isArray(arr) && arr.length) state.cats = arr.map(x => x.key).filter(Boolean);
+        }
+      }
+    } catch (e) { }
+
+    saveCfg();
+    state.baseline = snapshot();
+    renderCats();
+    renderList();
+    setConn(`${c.owner}/${c.repo}`, "ok");
+    msg.innerHTML = `<div class="okbox">已载入 ${state.tools.length} 条工具 · 数据来自 ${esc(c.owner)}/${esc(c.repo)} 的 ${esc(c.path)}（分支 ${esc(c.branch)}）</div>`;
+    $("footHint").textContent = "改动会提交到仓库，Cloudflare Pages 收到推送后自动重新构建页面。";
+    toast(`已载入 ${state.tools.length} 条工具`, "ok");
+  } catch (err) {
+    state.mode = "none";
+    setConn("未连接", "");
+    msg.innerHTML = `<div class="warnbox">${esc(err.message)}</div>`;
+    $("btnConnect").disabled = false;
+    $("btnConnect").textContent = "连接并载入数据";
+  }
+  $("btnConnect").disabled = false;
+  $("btnConnect").textContent = "连接并载入数据";
+});
+
+$("btnLocalFile").addEventListener("click", () => $("fileImport").click());
+
+$("fileImport").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  try {
+    const text = await f.text();
+    const parsed = parseToolsFile(text);
+    state.mode = "local";
+    state.head = parsed.head;
+    state.tools = parsed.tools;
+    state.sha = null;
+    state.baseline = snapshot();
+    renderCats();
+    renderList();
+    setConn("本地文件模式", "warn");
+    $("connMsg").innerHTML = `<div class="okbox">已从本地文件载入 ${state.tools.length} 条工具。改完后点右下角「导出文件」，用下载得到的 tools.js 覆盖仓库里的同名文件即可。</div>`;
+    $("footHint").textContent = "本地模式下改动不会自动上传，需要你手动替换仓库文件。";
+    toast(`已载入 ${state.tools.length} 条工具`, "ok");
+  } catch (err) {
+    toast("解析失败：" + err.message, "err");
+  }
+});
+
+$("btnReload").addEventListener("click", () => {
+  if (state.mode === "github") $("btnConnect").click();
+  else if (state.mode === "local") $("fileImport").click();
+});
+
+$("btnExport").addEventListener("click", () => {
+  if (!state.tools.length) { toast("没有数据可导出", "err"); return; }
+  const errs = validate();
+  if (errs.length) {
+    toast(`有 ${errs.length} 处数据问题，仍可导出，但站点构建可能失败。可点「检查数据」查看。`, "err");
+  }
+  const blob = new Blob([buildToolsFile()], { type: "text/javascript;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "tools.js";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("已导出 tools.js", "ok");
+});
+
+$("btnImport").addEventListener("click", () => $("fileImport").click());
+
+$("btnCheck").addEventListener("click", () => {
+  const errs = validate();
+  if (!errs.length) { toast("数据检查通过，没有发现问题", "ok"); return; }
+  $("connMsg").innerHTML = `<div class="warnbox"><b>发现 ${errs.length} 处问题：</b><br>` + errs.slice(0, 12).map(esc).join("<br>") +
+    (errs.length > 12 ? `<br>…另有 ${errs.length - 12} 处` : "") + `</div>`;
+  $("connBody").style.display = "";
+  $("btnToggleConn").textContent = "收起";
+  document.querySelector("main").scrollIntoView({ behavior: "smooth" });
+  toast(`发现 ${errs.length} 处数据问题`, "err");
+});
+
+/* ---------- 列表操作 ---------- */
+$("rows").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-edit],button[data-del],button[data-toggle],button[data-up],button[data-down]");
+  if (!btn) return;
+  const d = btn.dataset;
+  if (d.edit !== undefined) return openEditor(Number(d.edit));
+  if (d.toggle !== undefined) {
+    const t = state.tools[Number(d.toggle)];
+    t.status = (t.status || "published") === "published" ? "draft" : "published";
+    renderList();
+    toast(t.status === "published" ? `「${t.name}」已上架` : `「${t.name}」已转为草稿`);
+    return;
+  }
+  if (d.up !== undefined) {
+    const i = Number(d.up);
+    [state.tools[i - 1], state.tools[i]] = [state.tools[i], state.tools[i - 1]];
+    renderList();
+    return;
+  }
+  if (d.down !== undefined) {
+    const i = Number(d.down);
+    [state.tools[i + 1], state.tools[i]] = [state.tools[i], state.tools[i + 1]];
+    renderList();
+    return;
+  }
+  if (d.del !== undefined) {
+    const i = Number(d.del);
+    const t = state.tools[i];
+    if (!confirm(`确定删除「${t.name || t.id}」吗？\n\n删除后需要点「保存并发布」才会真正从站点移除。`)) return;
+    state.tools.splice(i, 1);
+    renderList();
+    toast(`已移除「${t.name}」，记得保存`);
+  }
+});
+
+/* ---------- 编辑弹窗 ---------- */
+let editingIndex = -1;
+
+function openEditor(i) {
+  editingIndex = i;
+  const isNew = i < 0;
+  const t = isNew ? {
+    id: "", slug: "", name: "", icon: "", cover: "", tagline: "", description: "",
+    category: state.cats[0] || "", tags: [], url: "", github: "", platform: [],
+    pricing: "free", featured: false, addedAt: today(), status: "published", likes: 0
+  } : Object.assign({}, state.tools[i], { tags: (state.tools[i].tags || []).slice(), platform: (state.tools[i].platform || []).slice() });
+
+  $("edTitle").textContent = isNew ? "新增工具" : `编辑 · ${t.name || t.id}`;
+  $("eId").value = t.id || "";
+  $("eId").disabled = !isNew;
+  $("eSlug").value = t.slug || "";
+  $("eIcon").value = t.icon || "";
+  $("eName").value = t.name || "";
+  $("eCategory").value = t.category || state.cats[0] || "";
+  $("eTagline").value = t.tagline || "";
+  $("eDesc").value = t.description || "";
+  $("eTags").value = (t.tags || []).join(", ");
+  $("eUrl").value = t.url || "";
+  $("eGithub").value = t.github || "";
+  $("ePlatform").value = (t.platform || []).join(", ");
+  $("ePricing").value = t.pricing || "free";
+  $("eAdded").value = t.addedAt || today();
+  $("eLikes").value = Number(t.likes || 0);
+  $("eFeatured").checked = !!t.featured;
+  $("ePublished").checked = (t.status || "published") === "published";
+  $("eCover").value = t.cover || "";
+  paintCoverPrev(t.cover, t.icon, t.category);
+
+  $("mEdit").classList.add("show");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => { if (isNew) $("eId").focus(); }, 60);
+}
+
+function paintCoverPrev(cover, icon, cat) {
+  const el = $("eCoverPrev");
+  el.style.background = CAT_GRAD[cat] || CAT_GRAD["系统工具"];
+  el.innerHTML = cover
+    ? `<img src="${esc(cover)}" alt="" onerror="this.parentNode.innerHTML='${esc(icon || "🔧")}'">`
+    : esc(icon || "🔧");
+}
+$("eCover").addEventListener("input", () => paintCoverPrev($("eCover").value.trim(), $("eIcon").value, $("eCategory").value));
+$("eIcon").addEventListener("input", () => paintCoverPrev($("eCover").value.trim(), $("eIcon").value, $("eCategory").value));
+
+$("btnUpload").addEventListener("click", () => {
+  if (state.mode !== "github") { toast("上传封面需要先连接 GitHub 仓库；本地模式请手动填路径。", "err"); return; }
+  if (!$("eId").value.trim()) { toast("请先填写 id，封面会按 id 命名", "err"); $("eId").focus(); return; }
+  $("fileCover").click();
+});
+
+$("fileCover").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  const c = cfg();
+  const id = $("eId").value.trim();
+  const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const target = `images/covers/${id}.${ext}`;
+  const btn = $("btnUpload");
+  btn.disabled = true;
+  btn.textContent = "上传中…";
+  try {
+    const buf = await f.arrayBuffer();
+    if (buf.byteLength > 900 * 1024) throw new Error("图片超过 900KB，请先压缩（建议 800×500、200KB 以内）");
+    let sha = null;
+    try { const old = await ghGetFile(c, target); if (old) sha = old.sha; } catch (err) { }
+    await ghPutFile(c, target, bufToB64(buf), `上传封面图 ${target}`, sha);
+    $("eCover").value = target;
+    paintCoverPrev(target, $("eIcon").value, $("eCategory").value);
+    toast("封面图已上传到仓库", "ok");
+  } catch (err) {
+    toast("上传失败：" + err.message, "err");
+  }
+  btn.disabled = false;
+  btn.textContent = "上传";
+});
+
+$("btnSaveTool").addEventListener("click", () => {
+  const id = $("eId").value.trim();
+  const slug = $("eSlug").value.trim() || id;
+  const name = $("eName").value.trim();
+  const tagline = $("eTagline").value.trim();
+  const url = $("eUrl").value.trim();
+  const github = $("eGithub").value.trim();
+
+  if (!ID_RE.test(id)) { toast("id 只能用小写字母、数字和连字符，且不能以连字符开头", "err"); $("eId").focus(); return; }
+  if (!ID_RE.test(slug)) { toast("slug 只能用小写字母、数字和连字符", "err"); $("eSlug").focus(); return; }
+  if (!name) { toast("请填写工具名", "err"); $("eName").focus(); return; }
+  if (!tagline) { toast("请填写一句话简介", "err"); $("eTagline").focus(); return; }
+  if (!url && !github) { toast("官网地址和开源仓库至少要填一个", "err"); $("eUrl").focus(); return; }
+
+  const dupId = state.tools.some((t, i) => t.id === id && i !== editingIndex);
+  if (dupId) { toast(`id 「${id}」已被占用`, "err"); return; }
+  const dupSlug = state.tools.some((t, i) => t.slug === slug && i !== editingIndex);
+  if (dupSlug) { toast(`slug 「${slug}」已被占用`, "err"); return; }
+
+  const split = v => v.split(",").map(s => s.trim()).filter(Boolean);
+  const rec = {
+    id, slug,
+    name,
+    icon: $("eIcon").value.trim(),
+    cover: $("eCover").value.trim(),
+    tagline,
+    description: $("eDesc").value.trim(),
+    category: $("eCategory").value,
+    tags: split($("eTags").value),
+    url,
+    github,
+    platform: split($("ePlatform").value),
+    pricing: $("ePricing").value,
+    featured: $("eFeatured").checked,
+    addedAt: $("eAdded").value || today(),
+    status: $("ePublished").checked ? "published" : "draft",
+    likes: Math.max(0, Math.floor(Number($("eLikes").value) || 0))
+  };
+
+  // 清掉空字段，保持数据文件干净
+  ["icon", "cover", "description", "github"].forEach(k => { if (!rec[k]) delete rec[k]; });
+  if (!rec.tags.length) delete rec.tags;
+  if (!rec.platform.length) delete rec.platform;
+
+  if (editingIndex < 0) { state.tools.push(rec); toast(`已新增「${name}」，记得保存`); }
+  else {
+    // 保持原有键顺序更稳定：以旧对象为基础覆盖
+    state.tools[editingIndex] = rec;
+    toast(`已更新「${name}」，记得保存`);
+  }
+  closeModal("mEdit");
+  renderList();
+});
+
+/* ---------- 弹窗通用 ---------- */
+function closeModal(id) {
+  $(id).classList.remove("show");
+  if (!document.querySelector(".mask.show")) document.body.style.overflow = "";
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-close]");
+  if (c) closeModal(c.dataset.close);
+  if (e.target.classList.contains("mask")) closeModal(e.target.id);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    const open = document.querySelector(".mask.show");
+    if (open && open.id !== "mPub") closeModal(open.id);
+  }
+});
+
+/* ---------- 发布 ---------- */
+$("btnDiscard").addEventListener("click", () => {
+  if (!confirm("放弃所有未保存的改动，回到上次载入的状态？")) return;
+  if (state.mode === "github") $("btnConnect").click();
+  else if (state.mode === "local") $("fileImport").click();
+});
+
+$("btnPublish").addEventListener("click", () => {
+  if (state.mode === "local") return $("btnExport").click();
+  const errs = validate();
+  const c = cfg();
+  const n = state.tools.length;
+
+  $("pubSummary").innerHTML = errs.length
+    ? `<b>注意：数据有 ${errs.length} 处问题</b><br>` + errs.slice(0, 6).map(esc).join("<br>") + (errs.length > 6 ? "<br>…" : "") + `<br><br>仍然可以提交，但站点构建可能失败。建议先修好。`
+    : `将提交 <b>${n}</b> 条工具到 <b>${esc(c.owner)}/${esc(c.repo)}</b>（分支 ${esc(c.branch)}）。`;
+  $("pubSummary").className = errs.length ? "warnbox" : "okbox";
+  $("pubResult").innerHTML = "";
+  $("pubMsg").value = `更新工具条目（共 ${n} 条）`;
+  $("btnDoPub").disabled = false;
+  $("btnDoPub").textContent = "确认提交";
+  $("mPub").classList.add("show");
+  document.body.style.overflow = "hidden";
+});
+
+$("btnDoPub").addEventListener("click", async () => {
+  const c = cfg();
+  const btn = $("btnDoPub");
+  const result = $("pubResult");
+  btn.disabled = true;
+  btn.textContent = "提交中…";
+  result.innerHTML = "";
+
+  const steps = [];
+  try {
+    // 1) 提交数据文件
+    steps.push("data/tools.js");
+    const r1 = await ghPutFile(c, c.path, buildToolsFile(), $("pubMsg").value.trim() || "更新工具条目", state.sha);
+    state.sha = (r1.content && r1.content.sha) || (r1.commit && r1.commit.sha) || state.sha;
+
+    // 2) 首页内嵌的数据副本无需处理；分类文件通常不变，跳过
+
+    state.baseline = snapshot();
+    markDirty();
+    renderList();
+    result.innerHTML = `<div class="okbox">
+      已提交 <b>${steps.length}</b> 个文件。<br>
+      Cloudflare Pages 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>
+      <a href="https://github.com/${esc(c.owner)}/${esc(c.repo)}/commits/${esc(c.branch)}" target="_blank" rel="noopener">查看提交记录 ↗</a>
+    </div>`;
+    toast("已提交到仓库", "ok");
+  } catch (err) {
+    result.innerHTML = `<div class="warnbox">提交失败：${esc(err.message)}</div>`;
+    toast("提交失败：" + err.message, "err");
+  }
+  btn.disabled = false;
+  btn.textContent = "确认提交";
+});
+
+/* ---------- 离开提醒 ---------- */
+window.addEventListener("beforeunload", e => {
+  if (state.dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ---------- 启动 ---------- */
+loadCfg();
+renderCats();
+paintBar();
+if (location.protocol === "file:") {
+  $("footHint").textContent = "提示：本地双击打开时也能用，但「保存并发布」需要联网访问 GitHub API。";
+}
+if (localStorage.getItem(LS_TOKEN) && $("fOwner").value && $("fRepo").value) {
+  $("btnConnect").click();
+}
+</script>
+</body>
+</html>

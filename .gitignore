@@ -1,0 +1,15 @@
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# WorkBuddy 工作区数据（不上仓库）
+.workbuddy/
+*.genie
+
+# 依赖（本项目无 package.json，留作兜底）
+node_modules/
+
+# 临时文件
+*.log
+*.tmp

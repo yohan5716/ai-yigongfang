@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# 数据与第三方脚本目录无需被收录
+Disallow: /data/
+Disallow: /vendor/
+Disallow: /images/covers/
+
+# 站长后台不入索引（接口路径同样屏蔽）
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://ygf.de5.net/sitemap.xml

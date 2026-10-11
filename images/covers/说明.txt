@@ -1,0 +1,2 @@
+站长封面图放这里：命名为 <工具id>.jpg（如 pixpin.jpg），建议 800x500 以上、500KB 内。
+data/tools.js 对应条目加 cover: "images/covers/pixpin.jpg" 后重跑 node build.mjs 即可显示。
