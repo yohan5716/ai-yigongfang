@@ -59,7 +59,7 @@ window.SITE_TOOLS = [
     pricing: "freemium", featured: false, addedAt: "2026-10-05", status: "published", likes: 654
   },
   {
-    id: "libreoffice", slug: "libreoffice", name: "LibreOffice", icon: "📄",
+    id: "libreoffice", slug: "libreoffice", name: "LibreOffice", icon: "📄", cover: "images/covers/libreoffice.jpg",
     tagline: "完全开源免费的办公套件",
     description: "Writer / Calc / Impress 对应文档、表格、演示，兼容 docx、xlsx、pptx 格式。不想为办公软件付费、又需要本地离线可用的场景，这是最稳的选择。",
     category: "办公必备", tags: ["办公套件", "开源", "离线"],
