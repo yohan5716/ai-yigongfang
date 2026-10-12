@@ -35,7 +35,7 @@ window.SITE_TOOLS = [
 
   /* ---------- 办公必备 ---------- */
   {
-    id: "pixpin", slug: "pixpin", name: "PixPin", icon: "📷",
+    id: "pixpin", slug: "pixpin", name: "PixPin", icon: "📷", cover: "images/covers/pixpin.jpg",
     tagline: "截图贴图长截图 OCR 一体化",
     description: "把截图、贴图、长截图、OCR 文字识别塞进一个工具里，装完基本可以卸载掉三四个同类软件。贴图功能可以把截图钉在屏幕最上层，对着资料抄写或比对特别顺手；长截图对网页、聊天记录都支持一键拼接。",
     category: "办公必备", tags: ["截图", "贴图", "OCR"],
