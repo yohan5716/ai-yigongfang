@@ -118,6 +118,16 @@ main{padding:22px 0 90px}
 .st{font-size:11.5px;font-weight:700;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
 .st.pub{background:rgba(16,185,129,.14);color:var(--primary-d)}
 .st.dr{background:rgba(100,116,139,.13);color:#475569}
+/* 待保存标记：批量编辑时一眼看出哪些条目改过 */
+.modtag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:rgba(245,158,11,.16);color:#B45309}
+.row.mod{background:rgba(245,158,11,.055);box-shadow:inset 3px 0 0 #F59E0B}
+.dlist{max-height:190px;overflow:auto;margin:8px 0 0;padding:0;list-style:none}
+.dlist li{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 2px;border-bottom:1px dashed var(--line-2);color:var(--muted)}
+.dlist li:last-child{border-bottom:0}
+.dlist .k{font-size:11px;font-weight:700;padding:1.5px 7px;border-radius:6px;flex-shrink:0}
+.k.add{background:rgba(16,185,129,.16);color:#047857}
+.k.chg{background:rgba(245,158,11,.18);color:#B45309}
+.k.del{background:rgba(239,68,68,.14);color:#B91C1C}
 
 /* ---------- 提示条 ---------- */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0f172a;color:#fff;font-size:13.5px;padding:11px 20px;border-radius:11px;box-shadow:0 10px 30px rgba(15,23,42,.3);opacity:0;pointer-events:none;transition:.22s;z-index:120;max-width:88vw;text-align:center;line-height:1.6}
@@ -269,6 +279,7 @@ main{padding:22px 0 90px}
     </div>
     <footer>
       <button class="btn ghost" data-close="mEdit">取消</button>
+      <button class="btn soft" id="btnSaveNext">确定并编辑下一条 →</button>
       <button class="btn primary" id="btnSaveTool">确定</button>
     </footer>
   </div>
@@ -403,6 +414,45 @@ function snapshot() { return JSON.stringify(state.tools); }
 function markDirty() {
   state.dirty = snapshot() !== state.baseline;
   paintBar();
+}
+
+/* ---------- 改动比对 ----------
+ * 与「上次载入 / 上次发布成功」的快照逐条比对，得出待保存清单。
+ * 用途：列表行「待保存」标记、底部栏条数、提交前确认清单。
+ * 支持批量编辑：可以先连着改若干条，最后点一次「保存并发布」全部提交。
+ */
+function diffInfo() {
+  const before = new Map();
+  try {
+    const arr = JSON.parse(state.baseline || "[]");
+    if (Array.isArray(arr)) arr.forEach(t => before.set(String(t.id), JSON.stringify(t)));
+  } catch (e) { }
+  const changed = [], added = [];
+  state.tools.forEach(t => {
+    const k = String(t.id);
+    if (!before.has(k)) added.push(t);
+    else if (before.get(k) !== JSON.stringify(t)) changed.push(t);
+    before.delete(k);
+  });
+  const removed = [...before.keys()];
+  return { changed, added, removed, total: changed.length + added.length + removed.length };
+}
+/* 待保存条目的可读摘要，如「PixPin、uTools 等 3 项」 */
+function diffBrief(D, max) {
+  const addIds = new Set(D.added.map(t => t.id)), chgIds = new Set(D.changed.map(t => t.id));
+  const names = state.tools.filter(t => addIds.has(t.id) || chgIds.has(t.id)).map(t => t.name || t.id);
+  D.removed.forEach(id => names.push(id + "（已删）"));
+  const n = max || 4;
+  if (!names.length) return "";
+  return names.slice(0, n).join("、") + (names.length > n ? ` 等 ${names.length} 项` : "");
+}
+/* 提交确认弹窗里的完整清单 */
+function diffListHTML(D) {
+  const rows = []
+    .concat(D.added.map(t => `<li><span class="k add">新增</span>${esc(t.name || t.id)}</li>`))
+    .concat(D.changed.map(t => `<li><span class="k chg">修改</span>${esc(t.name || t.id)}</li>`))
+    .concat(D.removed.map(id => `<li><span class="k del">删除</span>${esc(id)}</li>`));
+  return rows.length ? `<ul class="dlist">${rows.join("")}</ul>` : "";
 }
 
 /* ---------- 配置读写 ---------- */
@@ -600,14 +650,17 @@ function renderList() {
   if (!state.tools.length) {
     box.innerHTML = `<div class="empty">还没有任何工具条目<br>点右上角「+ 新增工具」开始添加</div>`;
   } else {
+    const D = diffInfo();
+    const addIds = new Set(D.added.map(t => t.id)), chgIds = new Set(D.changed.map(t => t.id));
     box.innerHTML = state.tools.map((t, i) => {
       const grad = gradOf(t.category);
       const pub = (t.status || "published") === "published";
       const cover = t.cover ? `<img src="${esc(t.cover)}" alt="" onerror="this.remove()">` : esc(t.icon || "🔧");
-      return `<div class="row ${pub ? "" : "draft"}">
+      const mod = addIds.has(t.id) || chgIds.has(t.id);
+      return `<div class="row ${pub ? "" : "draft"}${mod ? " mod" : ""}">
         <span class="rio" style="background:${grad}">${cover}</span>
         <div class="rmain">
-          <div class="rname">${esc(t.name || "(未命名)")}${t.featured ? '<span class="star">推荐</span>' : ""}</div>
+          <div class="rname">${esc(t.name || "(未命名)")}${t.featured ? '<span class="star">推荐</span>' : ""}${mod ? '<span class="modtag">待保存</span>' : ""}</div>
           <div class="rmeta">
             <code>${esc(t.slug || "—")}</code>
             <span>${esc(t.category || "未分类")}</span>
@@ -635,15 +688,21 @@ function renderList() {
 function paintBar() {
   $("actionbar").hidden = state.mode === "none";
   const btn = $("btnPublish");
+  const D = diffInfo();
+  const cnt = state.dirty ? `（${D.total} 项）` : "";
   $("btnDiscard").disabled = !state.dirty;
   if (state.mode === "local") {
-    btn.textContent = "导出文件";
+    btn.textContent = "导出文件" + cnt;
     btn.disabled = false;
-    $("barMsg").textContent = state.dirty ? "有未导出的改动（本地模式：导出后需自行替换文件）" : "本地模式 · 改动后导出覆盖 data/tools.js";
+    $("barMsg").textContent = state.dirty
+      ? `待导出 ${D.total} 项：${diffBrief(D)}`
+      : "本地模式 · 改动后导出覆盖 data/tools.js";
   } else {
-    btn.textContent = "保存并发布";
+    btn.textContent = "保存并发布" + cnt;
     btn.disabled = !state.dirty;
-    $("barMsg").textContent = state.dirty ? "有未保存的改动" : "所有改动已保存";
+    $("barMsg").textContent = state.dirty
+      ? `待保存 ${D.total} 项改动：${diffBrief(D)}`
+      : "所有改动已保存";
   }
 }
 
@@ -820,7 +879,11 @@ function openEditor(i) {
     pricing: "free", featured: false, addedAt: today(), status: "published", likes: 0
   } : Object.assign({}, state.tools[i], { tags: (state.tools[i].tags || []).slice(), platform: (state.tools[i].platform || []).slice() });
 
-  $("edTitle").textContent = isNew ? "新增工具" : `编辑 · ${t.name || t.id}`;
+  $("edTitle").innerHTML = isNew
+    ? "新增工具"
+    : `编辑 · ${esc(t.name || t.id)}　<span style="font-weight:400;color:var(--faint)">第 ${i + 1} / ${state.tools.length} 条</span>`;
+  /* 「确定并编辑下一条」只在编辑已有条目且还有下一条时可用，方便连着改一批 */
+  $("btnSaveNext").hidden = isNew || i >= state.tools.length - 1;
   $("eId").value = t.id || "";
   $("eId").disabled = !isNew;
   $("eSlug").value = t.slug || "";
@@ -1041,7 +1104,9 @@ $("fileCover").addEventListener("change", async e => {
   btn.textContent = "上传";
 });
 
-$("btnSaveTool").addEventListener("click", () => {
+/* 把编辑表单写回内存（不提交仓库）。校验通过返回 true。
+ * 「确定」和「确定并编辑下一条」共用，方便连续编辑多条后一次发布。 */
+function saveToolForm() {
   const id = $("eId").value.trim();
   const slug = $("eSlug").value.trim() || id;
   const name = $("eName").value.trim();
@@ -1049,16 +1114,16 @@ $("btnSaveTool").addEventListener("click", () => {
   const url = $("eUrl").value.trim();
   const github = $("eGithub").value.trim();
 
-  if (!ID_RE.test(id)) { toast("id 只能用小写字母、数字和连字符，且不能以连字符开头", "err"); $("eId").focus(); return; }
-  if (!ID_RE.test(slug)) { toast("slug 只能用小写字母、数字和连字符", "err"); $("eSlug").focus(); return; }
-  if (!name) { toast("请填写工具名", "err"); $("eName").focus(); return; }
-  if (!tagline) { toast("请填写一句话简介", "err"); $("eTagline").focus(); return; }
-  if (!url && !github) { toast("官网地址和开源仓库至少要填一个", "err"); $("eUrl").focus(); return; }
+  if (!ID_RE.test(id)) { toast("id 只能用小写字母、数字和连字符，且不能以连字符开头", "err"); $("eId").focus(); return false; }
+  if (!ID_RE.test(slug)) { toast("slug 只能用小写字母、数字和连字符", "err"); $("eSlug").focus(); return false; }
+  if (!name) { toast("请填写工具名", "err"); $("eName").focus(); return false; }
+  if (!tagline) { toast("请填写一句话简介", "err"); $("eTagline").focus(); return false; }
+  if (!url && !github) { toast("官网地址和开源仓库至少要填一个", "err"); $("eUrl").focus(); return false; }
 
   const dupId = state.tools.some((t, i) => t.id === id && i !== editingIndex);
-  if (dupId) { toast(`id 「${id}」已被占用`, "err"); return; }
+  if (dupId) { toast(`id 「${id}」已被占用`, "err"); return false; }
   const dupSlug = state.tools.some((t, i) => t.slug === slug && i !== editingIndex);
-  if (dupSlug) { toast(`slug 「${slug}」已被占用`, "err"); return; }
+  if (dupSlug) { toast(`slug 「${slug}」已被占用`, "err"); return false; }
 
   const split = v => v.split(/[,，]/).map(s => s.trim()).filter(Boolean);
   const rec = {
@@ -1085,10 +1150,31 @@ $("btnSaveTool").addEventListener("click", () => {
   if (!rec.tags.length) delete rec.tags;
   if (!rec.platform.length) delete rec.platform;
 
-  if (editingIndex < 0) { state.tools.push(rec); toast(`已新增「${name}」，记得保存`); }
-  else { state.tools[editingIndex] = rec; toast(`已更新「${name}」，记得保存`); }
+  if (editingIndex < 0) state.tools.push(rec);
+  else state.tools[editingIndex] = rec;
+  return true;
+}
+
+$("btnSaveTool").addEventListener("click", () => {
+  const name = $("eName").value.trim();
+  if (!saveToolForm()) return;
   closeModal("mEdit");
   renderList();
+  toast(`已更新「${name}」，点右下角「保存并发布」统一提交`, "ok");
+});
+
+$("btnSaveNext").addEventListener("click", () => {
+  const next = editingIndex + 1;
+  const name = $("eName").value.trim();
+  if (!saveToolForm()) return;
+  renderList();
+  if (next < state.tools.length) {
+    toast(`「${name}」已记下改动，继续编辑下一条`, "ok");
+    openEditor(next);
+  } else {
+    closeModal("mEdit");
+    toast(`「${name}」已记下改动，点右下角「保存并发布」统一提交`, "ok");
+  }
 });
 
 /* ---------- 弹窗通用 ---------- */
@@ -1110,7 +1196,9 @@ document.addEventListener("keydown", e => {
 
 /* ---------- 发布 ---------- */
 $("btnDiscard").addEventListener("click", () => {
-  if (!confirm("放弃所有未保存的改动，回到上次载入的状态？")) return;
+  const D = diffInfo();
+  const who = diffBrief(D, 6);
+  if (!confirm(`放弃全部 ${D.total} 项未保存的改动？\n\n${who}\n\n将回到上次载入 / 上次发布的状态。`)) return;
   if (state.mode === "github") $("btnConnect").click();
   else if (state.mode === "local") $("fileImport").click();
 });
@@ -1120,10 +1208,12 @@ $("btnPublish").addEventListener("click", () => {
   const errs = validate();
   const c = cfg();
   const n = state.tools.length;
+  const D = diffInfo();
+  const list = diffListHTML(D);
 
   $("pubSummary").innerHTML = errs.length
     ? `<b>注意：数据有 ${errs.length} 处问题</b><br>` + errs.slice(0, 6).map(esc).join("<br>") + (errs.length > 6 ? "<br>…" : "") + `<br><br>仍然可以提交，但站点构建可能失败。建议先修好。`
-    : `将提交 <b>${n}</b> 条工具到 <b>${esc(c.owner)}/${esc(c.repo)}</b>（分支 ${esc(c.branch)}）。`;
+    : `本次提交 <b>${D.total}</b> 项改动（共 ${n} 条工具 → <b>${esc(c.owner)}/${esc(c.repo)}</b>，分支 ${esc(c.branch)}）：` + list;
   $("pubSummary").className = errs.length ? "warnbox" : "okbox";
   $("pubResult").innerHTML = "";
   $("pubMsg").value = `更新工具条目（共 ${n} 条）`;
