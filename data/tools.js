@@ -145,7 +145,7 @@ window.SITE_TOOLS = [
     pricing: "freemium", featured: true, addedAt: "2026-10-06", status: "published", likes: 742
   },
   {
-    id: "via", slug: "via-browser", name: "Via 浏览器", icon: "🌐",
+    id: "via", slug: "via-browser", name: "Via 浏览器", icon: "🌐", cover: "images/covers/via.jpg",
     tagline: "不到 2MB 的极简浏览器",
     description: "安装包极小、启动极快，支持自定义广告拦截规则和脚本。低配手机或只想安安静静查个资料的场景，它比主流浏览器舒服得多。",
     category: "Android应用", tags: ["浏览器", "轻量", "拦截广告"],
