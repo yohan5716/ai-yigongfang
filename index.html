@@ -818,6 +818,7 @@ function pagerGoPage(p) {
   p = Math.min(Math.max(1, Number(p) || 1), totalPages);
   if (p === curPage) return;
   curPage = p;
+  syncHash();
   paintCards();
   const y = document.querySelector(".countrow").getBoundingClientRect().top + window.pageYOffset - 76;
   window.scrollTo({ top: y, behavior: "smooth" });
@@ -922,17 +923,64 @@ function syncActive() {
   document.querySelectorAll("#sortBox button").forEach(el => el.classList.toggle("on", el.dataset.sort === curSort));
 }
 
+/* ---------- 视图状态持久化（地址栏 hash） ----------
+ * 目的：切到某个分类/排序/页码后刷新浏览器，仍停在原视图，而不是弹回「全部工具」。
+ * 格式：#/cat=<分类>&sort=<排序>&page=<页码>，全为默认值时清空 hash。
+ */
+const CAT_KEYS_ALL = ["all", ...CAT_KEYS, FAV_KEY];
+const SORT_KEYS = ["pick", "new", "hot"];
+
+function stateHash() {
+  const parts = [];
+  if (curCat !== "all") parts.push("cat=" + encodeURIComponent(curCat));
+  if (curSort !== "pick") parts.push("sort=" + curSort);
+  if (curPage > 1) parts.push("page=" + curPage);
+  return parts.length ? "#/" + parts.join("&") : "";
+}
+
+function syncHash() {
+  const next = stateHash();
+  const cur = location.hash === "#" ? "" : location.hash;
+  if (next === cur) return;
+  const url = location.pathname + location.search + next;
+  try { history.replaceState(null, "", url); }
+  catch (e) { if (next) location.hash = next; }   // file:// 下 replaceState 可能被拒，退回改 hash
+}
+
+/* 从 hash 还原视图状态；无参数时回到默认（全部工具 / 站长推荐 / 第 1 页） */
+function readHash() {
+  const m = location.hash.match(/^#\/(.+)$/);
+  const p = new URLSearchParams(m ? m[1] : "");
+  const c = p.get("cat");
+  const s = p.get("sort");
+  const n = Number(p.get("page"));
+  curCat  = (c && CAT_KEYS_ALL.includes(c)) ? c : "all";
+  curSort = (s && SORT_KEYS.includes(s)) ? s : "pick";
+  curPage = (Number.isFinite(n) && n >= 1) ? Math.floor(n) : 1;
+}
+
+function applyHash() {
+  const before = `${curCat}|${curSort}|${curPage}`;
+  readHash();
+  if (`${curCat}|${curSort}|${curPage}` === before) return;
+  syncActive();
+  paintCards();
+}
+window.addEventListener("hashchange", applyHash);
+
 function setCat(c) {
   if (c !== "all" && c !== FAV_KEY && !CAT_KEYS.includes(c)) return;
   curCat = c;
   curPage = 1;
+  syncHash();
   syncActive();
   paintCards();
 }
 function setSort(s) {
-  if (!["pick", "new", "hot"].includes(s)) return;
+  if (!SORT_KEYS.includes(s)) return;
   curSort = s;
   curPage = 1;
+  syncHash();
   syncActive();
   paintCards();
 }
@@ -1050,6 +1098,7 @@ $("searchResults").addEventListener("click", e => {
  * 启动
  * ============================================================ */
 (async function boot() {
+  readHash();          // 先按地址栏 hash 还原分类/排序/页码，再渲染
   renderNav();
   renderCats();
   renderTabs();
