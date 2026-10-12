@@ -205,7 +205,7 @@ window.SITE_TOOLS = [
 
   /* ---------- 资源推荐 ---------- */
   {
-    id: "iconfont", slug: "iconfont", name: "阿里巴巴矢量图标库", icon: "🎨",
+    id: "iconfont", slug: "iconfont", name: "阿里巴巴矢量图标库", icon: "🎨", cover: "images/covers/iconfont.jpg",
     tagline: "国内最大的免费图标库",
     description: "数百万枚矢量图标，支持改色、改粗细、批量下载，还能在线管理自己的项目图标集。做网页、PPT、海报找图标，这里基本都能找到。",
     category: "资源推荐", tags: ["图标", "矢量", "免费商用"],
