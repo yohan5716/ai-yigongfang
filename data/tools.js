@@ -69,7 +69,7 @@ window.SITE_TOOLS = [
 
   /* ---------- 系统工具 ---------- */
   {
-    id: "everything", slug: "everything", name: "Everything", icon: "🔍",
+    id: "everything", slug: "everything", name: "Everything", icon: "🔍", cover: "images/covers/everything.jpg",
     tagline: "本地文件秒级搜索",
     description: "建立 NTFS 索引后，输入文件名几乎瞬间出结果，比 Windows 自带搜索快几个量级。支持正则、通配符、按大小和修改时间筛选，找十年前的文件也不费劲。",
     category: "系统工具", tags: ["搜索", "文件", "轻量"],
