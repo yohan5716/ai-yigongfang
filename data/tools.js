@@ -111,7 +111,7 @@ window.SITE_TOOLS = [
     pricing: "open", featured: true, addedAt: "2026-10-07", status: "published", likes: 1442
   },
   {
-    id: "obs", slug: "obs-studio", name: "OBS Studio", icon: "🎥",
+    id: "obs", slug: "obs-studio", name: "OBS Studio", icon: "🎥", cover: "images/covers/obs.jpg",
     tagline: "录屏与直播推流标配",
     description: "免费开源的录屏与直播软件，支持多场景切换、窗口捕获、绿幕抠像、音轨分离。做教程视频、录网课、直播都能用，插件生态非常成熟。",
     category: "音视频处理", tags: ["录屏", "直播", "开源"],
