@@ -463,6 +463,26 @@ async function ghPutFile(c, filePath, content, message, sha, isBase64) {
   if (!r.ok) throw new Error(await ghErr(r));
   return r.json();
 }
+/* 删除仓库里的一个文件（需要文件当前的 sha） */
+async function ghDeleteFile(c, filePath, message, sha) {
+  const url = `${API}/repos/${c.owner}/${c.repo}/contents/${filePath}`;
+  const r = await fetch(url, {
+    method: "DELETE",
+    headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders(c.token)),
+    body: JSON.stringify({ message, sha, branch: c.branch })
+  });
+  if (!r.ok) throw new Error(await ghErr(r));
+  return r.json();
+}
+/* 列出某个目录下的内容，返回 [{name, path, sha, type}] */
+async function ghListDir(c, dirPath) {
+  const url = `${API}/repos/${c.owner}/${c.repo}/contents/${dirPath}?ref=${encodeURIComponent(c.branch)}&t=${Date.now()}`;
+  const r = await fetch(url, { headers: ghHeaders(c.token), cache: "no-store" });
+  if (r.status === 404) return [];
+  if (!r.ok) throw new Error(await ghErr(r));
+  const j = await r.json();
+  return Array.isArray(j) ? j : [];
+}
 async function ghErr(r) {
   let detail = "";
   try {
@@ -918,6 +938,34 @@ async function compressCover(file, ext) {
   }
 }
 
+/* 换图后清理旧封面：同 id 的其他扩展名 + 表单里原有的旧路径（自定义文件名也算）。
+   删除失败不阻断主流程，返回成功删除的个数。 */
+async function cleanStaleCovers(c, id, fileName, prevCover) {
+  const norm = p => String(p || "").trim().replace(/^\.?\//, "");
+  const target = `images/covers/${fileName}`;
+  const stale = new Map();   // path -> sha
+
+  // 1) 同 id 的其他扩展名（旧图 utools.png → 新图 utools.jpg）
+  try {
+    const dir = await ghListDir(c, "images/covers");
+    dir.forEach(f => {
+      if (f.type === "file" && f.name !== fileName && f.name.startsWith(id + ".")) stale.set(f.path, f.sha);
+    });
+  } catch (err) { }
+
+  // 2) 表单里原本填的封面路径（限定在 covers 目录下，避免误删别处文件）
+  const prev = norm(prevCover);
+  if (prev && prev !== target && prev.startsWith("images/covers/") && !stale.has(prev)) {
+    try { const old = await ghGetFile(c, prev); if (old) stale.set(prev, old.sha); } catch (err) { }
+  }
+
+  let n = 0;
+  for (const [p, sha] of stale) {
+    try { await ghDeleteFile(c, p, `删除被替换的旧封面图 ${p}`, sha); n++; } catch (err) { }
+  }
+  return n;
+}
+
 $("fileCover").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0];
   e.target.value = "";
@@ -925,6 +973,7 @@ $("fileCover").addEventListener("change", async e => {
   const c = cfg();
   const id = $("eId").value.trim();
   const btn = $("btnUpload");
+  const prevCover = $("eCover").value.trim();   // 上传前的封面路径，用于换图后清理
 
   let ext = pickCoverExt(f);
   if (!ext) { toast("封面只支持 JPG / PNG / WebP / GIF / AVIF，请先转换格式再上传", "err"); return; }
@@ -948,7 +997,8 @@ $("fileCover").addEventListener("change", async e => {
     return;
   }
 
-  const target = `images/covers/${id}.${ext}`;
+  const fileName = `${id}.${ext}`;
+  const target = `images/covers/${fileName}`;   // 一个工具固定一张：同名直接覆盖
   btn.textContent = "上传中…";
   try {
     const buf = await out.arrayBuffer();
@@ -957,8 +1007,12 @@ $("fileCover").addEventListener("change", async e => {
     await ghPutFile(c, target, bufToB64(buf), `上传封面图 ${target}`, sha, true);
     $("eCover").value = target;
     if (!coverBlobUrl) paintCoverPrev(target, $("eIcon").value, $("eCategory").value);
+
+    const removed = await cleanStaleCovers(c, id, fileName, prevCover);
+
     const saved = out.size < f.size ? `，已压缩 ${(f.size / 1024).toFixed(0)}KB → ${(out.size / 1024).toFixed(0)}KB` : "";
-    toast(`封面已上传${saved}，站点约 1 分钟后生效`, "ok");
+    const cleaned = removed ? `，已删除 ${removed} 张旧封面` : "";
+    toast(`封面已上传${saved}${cleaned}，站点约 1 分钟后生效`, "ok");
   } catch (err) {
     toast("上传失败：" + err.message, "err");
   }
