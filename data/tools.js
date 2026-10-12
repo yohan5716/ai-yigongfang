@@ -127,7 +127,7 @@ window.SITE_TOOLS = [
     pricing: "open", featured: false, addedAt: "2026-10-01", status: "published", likes: 733
   },
   {
-    id: "capcut", slug: "capcut-cn", name: "剪映专业版", icon: "✂️",
+    id: "capcut", slug: "capcut-cn", name: "剪映专业版", icon: "✂️", cover: "images/covers/capcut.jpg",
     tagline: "零门槛的免费视频剪辑",
     description: "国内做短视频最顺手的一款，自动生成字幕、AI 配音、一键成片都有。电脑版支持多轨道精细剪辑，导出免费且没有强制水印。",
     category: "音视频处理", tags: ["剪辑", "字幕", "AI配音"],
