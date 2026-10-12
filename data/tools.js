@@ -51,7 +51,7 @@ window.SITE_TOOLS = [
     pricing: "freemium", featured: true, addedAt: "2026-10-08", status: "published", likes: 963
   },
   {
-    id: "yuque", slug: "yuque", name: "语雀", icon: "📚",
+    id: "yuque", slug: "yuque", name: "语雀", icon: "📚", cover: "images/covers/yuque.jpg",
     tagline: "团队知识库与文档协作",
     description: "中文排版体验最好的知识库之一，支持文档、表格、画板、思维导图混排，层级目录适合沉淀长期资料。个人免费版容量够用，适合把零散笔记整理成体系。",
     category: "办公必备", tags: ["文档", "知识库", "协作"],
