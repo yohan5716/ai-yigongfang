@@ -255,7 +255,7 @@ main{padding:22px 0 90px}
           <span class="prev" id="eCoverPrev">🖼</span>
           <div class="c1">
             <input id="eCover" placeholder="images/covers/pixpin.jpg （留空则用图标）">
-            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传一张。</p>
+            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传。上传会自动压缩：最长边缩到 1600px，JPG/WebP 质量 0.82，PNG 有透明则保留，上传前就能看到效果。</p>
           </div>
           <button class="btn soft sm" id="btnUpload" type="button">上传</button>
           <input type="file" id="fileCover" accept="image/*" hidden>
@@ -454,9 +454,10 @@ async function ghGetFile(c, filePath) {
   const raw = await fetch(j.download_url, { cache: "no-store" });
   return { text: await raw.text(), sha: j.sha };
 }
-async function ghPutFile(c, filePath, text, message, sha) {
+/* isBase64=true 时 content 已是 base64（用于二进制文件，如封面图），不再二次编码 */
+async function ghPutFile(c, filePath, content, message, sha, isBase64) {
   const url = `${API}/repos/${c.owner}/${c.repo}/contents/${filePath}`;
-  const body = { message, content: b64enc(text), branch: c.branch };
+  const body = { message, content: isBase64 ? content : b64enc(content), branch: c.branch };
   if (sha) body.sha = sha;
   const r = await fetch(url, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders(c.token)), body: JSON.stringify(body) });
   if (!r.ok) throw new Error(await ghErr(r));
@@ -841,26 +842,123 @@ $("btnUpload").addEventListener("click", () => {
   $("fileCover").click();
 });
 
+/* 本地已选图片的 objectURL，用于上传后立即可见（仓库部署有延迟，直接读远端会 404） */
+let coverBlobUrl = "";
+
+/* 封面图允许的格式：按扩展名优先，无扩展名时按 MIME 推断；不在表内一律拒绝 */
+const COVER_EXT = { jpg: "jpg", jpeg: "jpg", png: "png", webp: "webp", gif: "gif", avif: "avif" };
+const MIME_EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" };
+function pickCoverExt(f) {
+  const name = (f.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (COVER_EXT[name]) return COVER_EXT[name];
+  return MIME_EXT[(f.type || "").toLowerCase()] || "";
+}
+
+/* 用本地 blob 刷新预览（封面图上传后仓库部署有延迟，直接读远端会 404） */
+function setCoverPreview(blobLike) {
+  if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = ""; }
+  try {
+    coverBlobUrl = URL.createObjectURL(blobLike);
+    paintCoverPrev(coverBlobUrl, $("eIcon").value, $("eCategory").value);
+  } catch (err) { }
+}
+
+/* ---------- 上传前自动压缩 ---------- */
+const COVER_MAX = 1600;   // 最长边上限（px）
+const COVER_Q = 0.82;     // JPEG/WebP 有损质量
+const COVER_LIMIT = 900 * 1024;
+
+function loadImageEl(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("图片解码失败")); };
+    img.src = url;
+  });
+}
+function ctxHasAlpha(ctx, w, h) {
+  try {
+    const d = ctx.getImageData(0, 0, w, h).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] < 255) return true;
+    return false;
+  } catch (e) { return true; }   // 读不到就当有透明，保守保留 PNG
+}
+/* 缩放 + 转码；返回 { blob, ext }。失败或压完更大时原样返回，绝不劣化 */
+async function compressCover(file, ext) {
+  if (ext === "gif") return { blob: file, ext };   // GIF 可能是动图，canvas 会丢帧
+  const { img, url } = await loadImageEl(file);
+  try {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if (!w || !h) return { blob: file, ext };
+    const scale = Math.min(1, COVER_MAX / Math.max(w, h));
+    const tw = Math.max(1, Math.round(w * scale)), th = Math.max(1, Math.round(h * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = tw; canvas.height = th;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return { blob: file, ext };
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, tw, th);
+
+    let type = "image/jpeg", quality = COVER_Q;
+    if (ext === "png") {
+      if (ctxHasAlpha(ctx, tw, th)) { type = "image/png"; quality = undefined; }
+    } else if (ext === "webp" || ext === "avif") {
+      type = "image/webp";   // 浏览器基本不支持编码 avif，统一转 webp
+    }
+
+    const blob = await new Promise(res => canvas.toBlob(res, type, quality));
+    if (!blob || blob.size >= file.size) return { blob: file, ext };
+    // 以实际产出的 MIME 定扩展名（Safari 等不支持 webp 编码时会回落成 PNG）
+    return { blob, ext: MIME_EXT[blob.type] || ext };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 $("fileCover").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0];
   e.target.value = "";
   if (!f) return;
   const c = cfg();
   const id = $("eId").value.trim();
-  const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const target = `images/covers/${id}.${ext}`;
   const btn = $("btnUpload");
+
+  let ext = pickCoverExt(f);
+  if (!ext) { toast("封面只支持 JPG / PNG / WebP / GIF / AVIF，请先转换格式再上传", "err"); return; }
+
+  setCoverPreview(f);          // 先出原图，即时反馈
   btn.disabled = true;
+  btn.textContent = "处理中…";
+
+  let out = f;
+  try {
+    const r = await compressCover(f, ext);
+    out = r.blob;
+    ext = r.ext;
+    if (out !== f) setCoverPreview(out);   // 换成真正要上传的版本，所见即所传
+  } catch (err) { }
+
+  if (out.size > COVER_LIMIT) {
+    btn.disabled = false;
+    btn.textContent = "上传";
+    toast(`压缩后仍为 ${(out.size / 1024).toFixed(0)}KB，超过 900KB 上限，请手动压缩后再传`, "err");
+    return;
+  }
+
+  const target = `images/covers/${id}.${ext}`;
   btn.textContent = "上传中…";
   try {
-    const buf = await f.arrayBuffer();
-    if (buf.byteLength > 900 * 1024) throw new Error("图片超过 900KB，请先压缩（建议 800×500、200KB 以内）");
+    const buf = await out.arrayBuffer();
     let sha = null;
     try { const old = await ghGetFile(c, target); if (old) sha = old.sha; } catch (err) { }
-    await ghPutFile(c, target, bufToB64(buf), `上传封面图 ${target}`, sha);
+    await ghPutFile(c, target, bufToB64(buf), `上传封面图 ${target}`, sha, true);
     $("eCover").value = target;
-    paintCoverPrev(target, $("eIcon").value, $("eCategory").value);
-    toast("封面图已上传到仓库", "ok");
+    if (!coverBlobUrl) paintCoverPrev(target, $("eIcon").value, $("eCategory").value);
+    const saved = out.size < f.size ? `，已压缩 ${(f.size / 1024).toFixed(0)}KB → ${(out.size / 1024).toFixed(0)}KB` : "";
+    toast(`封面已上传${saved}，站点约 1 分钟后生效`, "ok");
   } catch (err) {
     toast("上传失败：" + err.message, "err");
   }
