@@ -119,7 +119,7 @@ window.SITE_TOOLS = [
     pricing: "open", featured: false, addedAt: "2026-10-04", status: "published", likes: 1189
   },
   {
-    id: "audacity", slug: "audacity", name: "Audacity", icon: "🎚",
+    id: "audacity", slug: "audacity", name: "Audacity", icon: "🎚", cover: "images/covers/audacity.jpg",
     tagline: "免费录音与音频编辑",
     description: "录人声、去底噪、裁剪拼接、变速变调都能做，界面朴素但功能完整。配合免费插件还能做降噪和响度标准化，做播客够用了。",
     category: "音视频处理", tags: ["音频", "录音", "降噪"],
