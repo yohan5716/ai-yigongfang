@@ -306,6 +306,8 @@ footer nav a:hover{text-decoration:underline}
 footer nav.legal a{color:var(--muted);font-size:11.5px}
 footer nav.legal a:hover{color:var(--primary-l)}
 footer .ftcopy{font-size:11.5px;opacity:.9}
+footer .ftbrand{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
+footer .ftbrand img{width:18px;height:18px;border-radius:50%;object-fit:cover}
 @media (max-width:640px){.rgrid{grid-template-columns:1fr}.dcard,.chead{padding:18px}.cover{font-size:52px}.tcover{width:120px}.tool{gap:12px}}
 `;
 
@@ -472,7 +474,7 @@ function shell({ title, desc, canonical, ogImg, jsonld, body, relRoot = "..", wi
 <meta name="theme-color" content="#10B981">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="${esc(canonical)}">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧰</text></svg>">
+<link rel="icon" href="${relRoot}/logo.jpg">
 ${fab ? FAB_THEME_INIT : ""}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(SITE.name)}">
@@ -510,7 +512,7 @@ ${body}
     <nav class="legal" aria-label="关于与合规">
       ${LEGAL.map(p => `<a href="${relRoot}/${p.slug}.html">${esc(p.nav)}</a>`).join("")}
     </nav>
-    <b>🧰 ${esc(SITE.name)}</b><br>
+    <b class="ftbrand"><img src="${relRoot}/logo.jpg" alt="">${esc(SITE.name)}</b><br>
     只收官方与开源来源 · 本站不提供二次打包文件<br>
     <span class="ftcopy">© ${new Date().getFullYear()} ${esc(SITE.owner)} · 本站不托管、不分发任何软件</span>
   </div>
