@@ -187,7 +187,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: false, addedAt: "2026-09-24", status: "published", likes: 1264
   },
   {
-    id: "csdiy", slug: "cs-diy", name: "CS 自学指南", icon: "🎓",
+    id: "csdiy", slug: "cs-diy", name: "CS 自学指南", icon: "🎓", cover: "images/covers/csdiy.jpg",
     tagline: "一条完整的计算机自学路线",
     description: "把国外名校的公开课按课程难度和依赖关系重新编排，从编程入门一直排到操作系统、编译原理、分布式系统。想系统补基础又不知道从哪开始，照着这条线走就行。",
     category: "教程", tags: ["自学路线", "公开课", "计算机基础"],
