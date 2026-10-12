@@ -77,7 +77,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: true, addedAt: "2026-10-08", status: "published", likes: 1108
   },
   {
-    id: "rufus", slug: "rufus", name: "Rufus", icon: "💾",
+    id: "rufus", slug: "rufus", name: "Rufus", icon: "💾", cover: "images/covers/rufus.jpg",
     tagline: "三分钟做好一个启动盘",
     description: "把 ISO 写成可启动 U 盘，体积不到 2MB 免安装。装 Windows 11 时可以顺手跳过 TPM 与联网账户检查，重装系统必备。",
     category: "系统工具", tags: ["U盘", "装系统", "免安装"],
