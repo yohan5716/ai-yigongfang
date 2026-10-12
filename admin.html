@@ -255,7 +255,7 @@ main{padding:22px 0 90px}
           <span class="prev" id="eCoverPrev">🖼</span>
           <div class="c1">
             <input id="eCover" placeholder="images/covers/pixpin.jpg （留空则用图标）">
-            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传。上传会自动压缩：最长边缩到 1600px，JPG/WebP 质量 0.82，PNG 有透明则保留，上传前就能看到效果。</p>
+            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传。上传会自动处理：<b>按 16:9 居中裁剪</b>（构图请放中间），最长边缩到 1600px，JPG/WebP 质量 0.82，PNG 有透明则保留；上传前就能看到效果。</p>
           </div>
           <button class="btn soft sm" id="btnUpload" type="button">上传</button>
           <input type="file" id="fileCover" accept="image/*" hidden>
@@ -887,6 +887,8 @@ function setCoverPreview(blobLike) {
 const COVER_MAX = 1600;   // 最长边上限（px）
 const COVER_Q = 0.82;     // JPEG/WebP 有损质量
 const COVER_LIMIT = 900 * 1024;
+const COVER_AR = 16 / 9;        // 封面统一比例：与详情页大图 .cover 一致
+const COVER_AR_TOL = 0.01;      // 比例偏差 <1% 视为已达标，不做无谓裁剪
 
 function loadImageEl(file) {
   return new Promise((resolve, reject) => {
@@ -904,23 +906,35 @@ function ctxHasAlpha(ctx, w, h) {
     return false;
   } catch (e) { return true; }   // 读不到就当有透明，保守保留 PNG
 }
-/* 缩放 + 转码；返回 { blob, ext }。失败或压完更大时原样返回，绝不劣化 */
+/* 缩放 + 按 16:9 居中裁剪 + 转码；返回 { blob, ext, cropped, cut }。
+ * 未裁剪时压完更大就原样返回（绝不劣化）；已裁剪时无条件采用裁剪结果
+ * —— 比例对齐是硬需求，不能因为"压完更大"就退回一张比例不对的原图。 */
 async function compressCover(file, ext) {
-  if (ext === "gif") return { blob: file, ext };   // GIF 可能是动图，canvas 会丢帧
+  if (ext === "gif") return { blob: file, ext, cropped: false };   // GIF 可能是动图，canvas 会丢帧
   const { img, url } = await loadImageEl(file);
   try {
     const w = img.naturalWidth, h = img.naturalHeight;
-    if (!w || !h) return { blob: file, ext };
-    const scale = Math.min(1, COVER_MAX / Math.max(w, h));
-    const tw = Math.max(1, Math.round(w * scale)), th = Math.max(1, Math.round(h * scale));
+    if (!w || !h) return { blob: file, ext, cropped: false };
+
+    /* 居中裁剪到 16:9：图比目标宽就左右各裁，比目标高就上下各裁 */
+    let sx = 0, sy = 0, sw = w, sh = h;
+    const ar = w / h;
+    if (Math.abs(ar - COVER_AR) / COVER_AR > COVER_AR_TOL) {
+      if (ar > COVER_AR) { sw = Math.round(h * COVER_AR); sx = Math.round((w - sw) / 2); }
+      else { sh = Math.round(w / COVER_AR); sy = Math.round((h - sh) / 2); }
+    }
+    const cropped = sw !== w || sh !== h;
+
+    const scale = Math.min(1, COVER_MAX / Math.max(sw, sh));
+    const tw = Math.max(1, Math.round(sw * scale)), th = Math.max(1, Math.round(sh * scale));
 
     const canvas = document.createElement("canvas");
     canvas.width = tw; canvas.height = th;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return { blob: file, ext };
+    if (!ctx) return { blob: file, ext, cropped: false };
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(img, 0, 0, tw, th);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, tw, th);
 
     let type = "image/jpeg", quality = COVER_Q;
     if (ext === "png") {
@@ -930,9 +944,14 @@ async function compressCover(file, ext) {
     }
 
     const blob = await new Promise(res => canvas.toBlob(res, type, quality));
-    if (!blob || blob.size >= file.size) return { blob: file, ext };
+    if (!blob || (!cropped && blob.size >= file.size)) return { blob: file, ext, cropped: false };
     // 以实际产出的 MIME 定扩展名（Safari 等不支持 webp 编码时会回落成 PNG）
-    return { blob, ext: MIME_EXT[blob.type] || ext };
+    return {
+      blob, ext: MIME_EXT[blob.type] || ext, cropped,
+      cut: cropped
+        ? (sw < w ? `左右各裁 ${((1 - sw / w) * 50).toFixed(1)}%` : `上下各裁 ${((1 - sh / h) * 50).toFixed(1)}%`)
+        : ""
+    };
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -983,10 +1002,12 @@ $("fileCover").addEventListener("change", async e => {
   btn.textContent = "处理中…";
 
   let out = f;
+  let cropTip = "";
   try {
     const r = await compressCover(f, ext);
     out = r.blob;
     ext = r.ext;
+    if (r.cropped) cropTip = `，已按 16:9 居中裁剪（${r.cut}）`;
     if (out !== f) setCoverPreview(out);   // 换成真正要上传的版本，所见即所传
   } catch (err) { }
 
@@ -1012,7 +1033,7 @@ $("fileCover").addEventListener("change", async e => {
 
     const saved = out.size < f.size ? `，已压缩 ${(f.size / 1024).toFixed(0)}KB → ${(out.size / 1024).toFixed(0)}KB` : "";
     const cleaned = removed ? `，已删除 ${removed} 张旧封面` : "";
-    toast(`封面已上传${saved}${cleaned}，站点约 1 分钟后生效`, "ok");
+    toast(`封面已上传${cropTip}${saved}${cleaned}，站点约 1 分钟后生效`, "ok");
   } catch (err) {
     toast("上传失败：" + err.message, "err");
   }
