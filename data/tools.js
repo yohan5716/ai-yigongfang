@@ -171,7 +171,7 @@ window.SITE_TOOLS = [
 
   /* ---------- 教程 ---------- */
   {
-    id: "runoob", slug: "runoob", name: "菜鸟教程", icon: "📘",
+    id: "runoob", slug: "runoob", name: "菜鸟教程", icon: "📘", cover: "images/covers/runoob.jpg",
     tagline: "中文编程入门速查首选",
     description: "覆盖从 HTML、Python 到 MySQL、Git 的入门教程，每个知识点都配可在线运行的示例。语法忘了随手查一查，比翻文档快。",
     category: "教程", tags: ["编程入门", "速查", "在线示例"],
