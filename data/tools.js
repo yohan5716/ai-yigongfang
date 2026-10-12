@@ -221,7 +221,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: false, addedAt: "2026-09-30", status: "published", likes: 1622
   },
   {
-    id: "sourcehansans", slug: "source-han-sans", name: "思源黑体", icon: "🔤",
+    id: "sourcehansans", slug: "source-han-sans", name: "思源黑体", icon: "🔤", cover: "images/covers/sourcehansans.jpg",
     tagline: "免费可商用的中文字体",
     description: "Adobe 与 Google 联合发布的开源中文字体，七个字重，覆盖简繁日韩。做设计、做视频、做 PPT 都不用担心授权问题，是目前最稳妥的免费中文字体选择。",
     category: "资源推荐", tags: ["字体", "免费商用", "开源"],
