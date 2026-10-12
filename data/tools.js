@@ -179,7 +179,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: true, addedAt: "2026-10-03", status: "published", likes: 1830
   },
   {
-    id: "mdn", slug: "mdn-web-docs", name: "MDN Web Docs", icon: "📕",
+    id: "mdn", slug: "mdn-web-docs", name: "MDN Web Docs", icon: "📕", cover: "images/covers/mdn.jpg",
     tagline: "Web 技术的权威中文文档",
     description: "HTML、CSS、JavaScript 以及浏览器 API 的标准参考，由 Mozilla 与社区共同维护。做前端遇到不确定的行为，最终都以这里的说明为准。",
     category: "教程", tags: ["前端", "文档", "标准"],
