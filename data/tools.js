@@ -137,7 +137,7 @@ window.SITE_TOOLS = [
 
   /* ---------- Android应用 ---------- */
   {
-    id: "mtmanager", slug: "mt-manager", name: "MT管理器", icon: "🗂",
+    id: "mtmanager", slug: "mt-manager", name: "MT管理器", icon: "🗂", cover: "images/covers/mtmanager.jpg",
     tagline: "Android 文件与 APK 全能管理",
     description: "双窗口文件管理，能直接解包、编辑、重签 APK，查看和修改应用内部资源。装个来路不明的安装包想先看一眼里面有什么，用这个最快。",
     category: "Android应用", tags: ["文件管理", "APK", "逆向"],
