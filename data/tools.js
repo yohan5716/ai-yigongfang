@@ -103,7 +103,7 @@ window.SITE_TOOLS = [
 
   /* ---------- 音视频处理 ---------- */
   {
-    id: "handbrake", slug: "handbrake", name: "HandBrake", icon: "🎞",
+    id: "handbrake", slug: "handbrake", name: "HandBrake", icon: "🎞", cover: "images/covers/handbrake.jpg",
     tagline: "开源视频转码与压缩",
     description: "把大体积视频压到能发微信、能上传的大小，预设方案开箱可用。支持批量队列、字幕烧录、裁边和去交错，是老牌且仍在活跃更新的转码工具。",
     category: "音视频处理", tags: ["转码", "压缩", "开源"],
