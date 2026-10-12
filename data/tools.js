@@ -161,7 +161,7 @@ window.SITE_TOOLS = [
     pricing: "open", featured: true, addedAt: "2026-09-25", status: "published", likes: 1094
   },
   {
-    id: "woobx", slug: "yigemu-han", name: "一个木函", icon: "🧰",
+    id: "woobx", slug: "yigemu-han", name: "一个木函", icon: "🧰", cover: "images/covers/woobx.jpg",
     tagline: "上百种小工具的百宝箱",
     description: "把单位换算、图片压缩、文字处理、二维码生成、网速测试等一大堆小功能塞进一个 App。平时用不到，需要的时候找不到替代品。",
     category: "Android应用", tags: ["工具箱", "实用", "合集"],
