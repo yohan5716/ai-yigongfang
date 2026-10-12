@@ -43,7 +43,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: true, addedAt: "2026-10-09", status: "published", likes: 1290
   },
   {
-    id: "utools", slug: "utools", name: "uTools", icon: "🧿",
+    id: "utools", slug: "utools", name: "uTools", icon: "🧿", cover: "images/covers/utools.jpg",
     tagline: "按一下空格就出来的效率启动器",
     description: "按下快捷键唤出搜索框，输入关键词就能找文件、算数、剪贴板历史、翻译、写 JSON、查颜色。真正的价值在于插件市场：需要什么装什么，不用装一堆常驻后台的软件。",
     category: "办公必备", tags: ["启动器", "插件", "效率"],
@@ -235,6 +235,6 @@ window.SITE_TOOLS = [
     category: "资源推荐", tags: ["替代方案", "选型", "对比"],
     url: "https://alternativeto.net", platform: ["Web"],
     pricing: "free", featured: false, addedAt: "2026-09-19", status: "published", likes: 856
-  }
+  },
 
 ];
