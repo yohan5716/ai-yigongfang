@@ -127,6 +127,7 @@ main{padding:22px 0 90px}
 .dlist .k{font-size:11px;font-weight:700;padding:1.5px 7px;border-radius:6px;flex-shrink:0}
 .k.add{background:rgba(16,185,129,.16);color:#047857}
 .k.chg{background:rgba(245,158,11,.18);color:#B45309}
+.k.cov{background:rgba(59,130,246,.16);color:#1D4ED8}
 .k.del{background:rgba(239,68,68,.14);color:#B91C1C}
 
 /* ---------- 提示条 ---------- */
@@ -265,9 +266,9 @@ main{padding:22px 0 90px}
           <span class="prev" id="eCoverPrev">🖼</span>
           <div class="c1">
             <input id="eCover" placeholder="images/covers/pixpin.jpg （留空则用图标）">
-            <p class="tip" id="coverTip">填相对路径，或点右侧按钮上传。上传会自动处理：<b>按 16:9 居中裁剪</b>（构图请放中间），最长边缩到 1600px，JPG/WebP 质量 0.82，PNG 有透明则保留；上传前就能看到效果。</p>
+            <p class="tip" id="coverTip">点右侧「选择图片」，自动<b>按 16:9 居中裁剪</b>（构图请放中间）、最长边缩到 1600px、质量 0.82，选完立刻看到效果。<b>图片会和工具数据一起，在点右下角「保存并发布」时才提交到仓库。</b></p>
           </div>
-          <button class="btn soft sm" id="btnUpload" type="button">上传</button>
+          <button class="btn soft sm" id="btnUpload" type="button">选择图片</button>
           <input type="file" id="fileCover" accept="image/*" hidden>
         </div>
       </div>
@@ -404,15 +405,45 @@ const state = {
   grads: {},          // 分类 -> 渐变，来自 categories.js；空则回落到 CAT_GRAD
   sha: null,          // data/tools.js 的 blob sha
   dirty: false,
-  baseline: ""        // 载入时的快照，用于判断是否有改动
+  baseline: "",       // 载入时的快照，用于判断是否有改动
+  covers: {}          // 待提交的封面图：id -> { blob, ext, fileName, target, prevCover, url }
 };
 
 /* 分类渐变：优先用 categories.js 里的，保证与前台/构建产物一致 */
 const gradOf = cat => state.grads[cat] || CAT_GRAD[cat] || CAT_GRAD["系统工具"];
 
 function snapshot() { return JSON.stringify(state.tools); }
+
+/* ---------- 待提交的封面图 ----------
+ * 上传封面不再立即提交仓库，而是先暂存在内存里，等点「保存并发布」时和 tools.js 一起提交。
+ * 否则换封面会绕过批量流程单独产生一次提交，而且数据没变时按钮仍是灰的（点不动）。
+ */
+function pendingCoverIds() { return Object.keys(state.covers); }
+function setCoverPending(id, payload) {
+  dropCoverPending(id);
+  state.covers[id] = payload;
+}
+function dropCoverPending(id) {
+  const p = state.covers[id];
+  if (p && p.url) { try { URL.revokeObjectURL(p.url); } catch (e) { } }
+  delete state.covers[id];
+}
+function clearCoverPending() { pendingCoverIds().forEach(dropCoverPending); }
+/* 待提交封面的本地 objectURL：仓库里还没有这张图，预览只能读内存 blob */
+function coverUrlOf(id) {
+  const p = state.covers[id];
+  if (!p) return "";
+  if (!p.url) { try { p.url = URL.createObjectURL(p.blob); } catch (e) { p.url = ""; } }
+  return p.url;
+}
+function coverNote() {
+  const n = pendingCoverIds().length;
+  return n ? `（含封面 ${n} 张）` : "";
+}
+
 function markDirty() {
-  state.dirty = snapshot() !== state.baseline;
+  /* 只换了封面图时 state.tools 可能一字未变，但仓库里确实有东西要提交 */
+  state.dirty = snapshot() !== state.baseline || pendingCoverIds().length > 0;
   paintBar();
 }
 
@@ -435,6 +466,13 @@ function diffInfo() {
     before.delete(k);
   });
   const removed = [...before.keys()];
+  /* 只换了封面图（工具数据一字未变）也算一处改动，否则底部栏会一直说"没有改动" */
+  const seen = new Set(changed.concat(added).map(t => String(t.id)));
+  pendingCoverIds().forEach(id => {
+    if (seen.has(id)) return;
+    const t = state.tools.find(x => String(x.id) === id);
+    if (t) { changed.push(t); seen.add(id); }
+  });
   return { changed, added, removed, total: changed.length + added.length + removed.length };
 }
 /* 待保存条目的可读摘要，如「PixPin、uTools 等 3 项」 */
@@ -448,9 +486,10 @@ function diffBrief(D, max) {
 }
 /* 提交确认弹窗里的完整清单 */
 function diffListHTML(D) {
+  const cov = id => (state.covers[id] ? '<span class="k cov">含封面</span>' : "");
   const rows = []
-    .concat(D.added.map(t => `<li><span class="k add">新增</span>${esc(t.name || t.id)}</li>`))
-    .concat(D.changed.map(t => `<li><span class="k chg">修改</span>${esc(t.name || t.id)}</li>`))
+    .concat(D.added.map(t => `<li><span class="k add">新增</span>${esc(t.name || t.id)}${cov(t.id)}</li>`))
+    .concat(D.changed.map(t => `<li><span class="k chg">修改</span>${esc(t.name || t.id)}${cov(t.id)}</li>`))
     .concat(D.removed.map(id => `<li><span class="k del">删除</span>${esc(id)}</li>`));
   return rows.length ? `<ul class="dlist">${rows.join("")}</ul>` : "";
 }
@@ -656,11 +695,12 @@ function renderList() {
       const grad = gradOf(t.category);
       const pub = (t.status || "published") === "published";
       const cover = t.cover ? `<img src="${esc(t.cover)}" alt="" onerror="this.remove()">` : esc(t.icon || "🔧");
-      const mod = addIds.has(t.id) || chgIds.has(t.id);
+      const mod = addIds.has(t.id) || chgIds.has(t.id) || !!state.covers[t.id];
+      const covTxt = state.covers[t.id] ? "·封面" : "";
       return `<div class="row ${pub ? "" : "draft"}${mod ? " mod" : ""}">
         <span class="rio" style="background:${grad}">${cover}</span>
         <div class="rmain">
-          <div class="rname">${esc(t.name || "(未命名)")}${t.featured ? '<span class="star">推荐</span>' : ""}${mod ? '<span class="modtag">待保存</span>' : ""}</div>
+          <div class="rname">${esc(t.name || "(未命名)")}${t.featured ? '<span class="star">推荐</span>' : ""}${mod ? `<span class="modtag">待保存${covTxt}</span>` : ""}</div>
           <div class="rmeta">
             <code>${esc(t.slug || "—")}</code>
             <span>${esc(t.category || "未分类")}</span>
@@ -701,7 +741,7 @@ function paintBar() {
     btn.textContent = "保存并发布" + cnt;
     btn.disabled = !state.dirty;
     $("barMsg").textContent = state.dirty
-      ? `待保存 ${D.total} 项改动：${diffBrief(D)}`
+      ? `待保存 ${D.total} 项改动：${diffBrief(D)}${coverNote()}`
       : "所有改动已保存";
   }
 }
@@ -861,6 +901,7 @@ $("rows").addEventListener("click", e => {
     const i = Number(d.del);
     const t = state.tools[i];
     if (!confirm(`确定删除「${t.name || t.id}」吗？\n\n删除后需要点「保存并发布」才会真正从站点移除。`)) return;
+    dropCoverPending(t.id);   // 连同已选但未提交的封面一起丢掉，别给已删条目传图
     state.tools.splice(i, 1);
     renderList();
     toast(`已移除「${t.name}」，记得保存`);
@@ -902,7 +943,13 @@ function openEditor(i) {
   $("eFeatured").checked = !!t.featured;
   $("ePublished").checked = (t.status || "published") === "published";
   $("eCover").value = t.cover || "";
-  paintCoverPrev(t.cover, t.icon, t.category);
+  /* 有已选但还没提交的封面时，预览要读内存里的图（仓库里那张还没上去） */
+  if (state.covers[t.id]) {
+    $("eCover").value = state.covers[t.id].target;
+    paintCoverPrev(coverUrlOf(t.id), $("eIcon").value, t.category);
+  } else {
+    paintCoverPrev(t.cover, t.icon, t.category);
+  }
 
   $("mEdit").classList.add("show");
   document.body.style.overflow = "hidden";
@@ -920,7 +967,7 @@ $("eCover").addEventListener("input", () => paintCoverPrev($("eCover").value.tri
 $("eIcon").addEventListener("input", () => paintCoverPrev($("eCover").value.trim(), $("eIcon").value, $("eCategory").value));
 
 $("btnUpload").addEventListener("click", () => {
-  if (state.mode !== "github") { toast("上传封面需要先连接 GitHub 仓库；本地模式请手动填路径。", "err"); return; }
+  if (state.mode !== "github") { toast("选图需要先连接 GitHub 仓库（图片在点「保存并发布」时提交）；本地模式请手动填路径。", "err"); return; }
   if (!$("eId").value.trim()) { toast("请先填写 id，封面会按 id 命名", "err"); $("eId").focus(); return; }
   $("fileCover").click();
 });
@@ -1052,10 +1099,9 @@ $("fileCover").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0];
   e.target.value = "";
   if (!f) return;
-  const c = cfg();
   const id = $("eId").value.trim();
   const btn = $("btnUpload");
-  const prevCover = $("eCover").value.trim();   // 上传前的封面路径，用于换图后清理
+  const prevCover = $("eCover").value.trim();   // 选图前的封面路径，提交时用于清理旧文件
 
   let ext = pickCoverExt(f);
   if (!ext) { toast("封面只支持 JPG / PNG / WebP / GIF / AVIF，请先转换格式再上传", "err"); return; }
@@ -1071,37 +1117,37 @@ $("fileCover").addEventListener("change", async e => {
     out = r.blob;
     ext = r.ext;
     if (r.cropped) cropTip = `，已按 16:9 居中裁剪（${r.cut}）`;
-    if (out !== f) setCoverPreview(out);   // 换成真正要上传的版本，所见即所传
+    if (out !== f) setCoverPreview(out);   // 换成真正要提交的版本，所见即所传
   } catch (err) { }
 
   if (out.size > COVER_LIMIT) {
     btn.disabled = false;
-    btn.textContent = "上传";
+    btn.textContent = "选择图片";
     toast(`压缩后仍为 ${(out.size / 1024).toFixed(0)}KB，超过 900KB 上限，请手动压缩后再传`, "err");
     return;
   }
 
+  /* 只暂存，不提交仓库：等点「保存并发布」时和图一起走批量流程 */
   const fileName = `${id}.${ext}`;
-  const target = `images/covers/${fileName}`;   // 一个工具固定一张：同名直接覆盖
-  btn.textContent = "上传中…";
-  try {
-    const buf = await out.arrayBuffer();
-    let sha = null;
-    try { const old = await ghGetFile(c, target); if (old) sha = old.sha; } catch (err) { }
-    await ghPutFile(c, target, bufToB64(buf), `上传封面图 ${target}`, sha, true);
-    $("eCover").value = target;
-    if (!coverBlobUrl) paintCoverPrev(target, $("eIcon").value, $("eCategory").value);
+  const target = `images/covers/${fileName}`;
+  const pending = { blob: out, ext, fileName, target, prevCover };
+  if (coverBlobUrl) { pending.url = coverBlobUrl; coverBlobUrl = ""; }   // 复用刚建好的 objectURL
+  setCoverPending(id, pending);
+  $("eCover").value = target;
+  const url = coverUrlOf(id);
+  if (url) paintCoverPrev(url, $("eIcon").value, $("eCategory").value);
 
-    const removed = await cleanStaleCovers(c, id, fileName, prevCover);
-
-    const saved = out.size < f.size ? `，已压缩 ${(f.size / 1024).toFixed(0)}KB → ${(out.size / 1024).toFixed(0)}KB` : "";
-    const cleaned = removed ? `，已删除 ${removed} 张旧封面` : "";
-    toast(`封面已上传${cropTip}${saved}${cleaned}，站点约 1 分钟后生效`, "ok");
-  } catch (err) {
-    toast("上传失败：" + err.message, "err");
+  /* 表单里的路径不等于数据：只有点「确定」才写回。这里同步写回，避免"换了扩展名却没点确定"
+     导致 tools.js 指向一张已被清理掉的旧图。 */
+  if (editingIndex >= 0 && state.tools[editingIndex] && state.tools[editingIndex].id === id) {
+    state.tools[editingIndex].cover = target;
   }
+
+  const saved = out.size < f.size ? `，已压缩 ${(f.size / 1024).toFixed(0)}KB → ${(out.size / 1024).toFixed(0)}KB` : "";
+  renderList();                // 刷新「待保存」标记 + 底部栏
   btn.disabled = false;
-  btn.textContent = "上传";
+  btn.textContent = "选择图片";
+  toast(`封面已就绪${cropTip}${saved}，点右下角「保存并发布」一起提交`, "ok");
 });
 
 /* 把编辑表单写回内存（不提交仓库）。校验通过返回 true。
@@ -1198,7 +1244,10 @@ document.addEventListener("keydown", e => {
 $("btnDiscard").addEventListener("click", () => {
   const D = diffInfo();
   const who = diffBrief(D, 6);
-  if (!confirm(`放弃全部 ${D.total} 项未保存的改动？\n\n${who}\n\n将回到上次载入 / 上次发布的状态。`)) return;
+  const covN = pendingCoverIds().length;
+  const covLine = covN ? `\n\n其中 ${covN} 张已选但未提交的封面图会被丢弃（需要重新选图）。` : "";
+  if (!confirm(`放弃全部 ${D.total} 项未保存的改动？\n\n${who}${covLine}\n\n将回到上次载入 / 上次发布的状态。`)) return;
+  clearCoverPending();
   if (state.mode === "github") $("btnConnect").click();
   else if (state.mode === "local") $("fileImport").click();
 });
@@ -1210,10 +1259,14 @@ $("btnPublish").addEventListener("click", () => {
   const n = state.tools.length;
   const D = diffInfo();
   const list = diffListHTML(D);
+  const covN = pendingCoverIds().length;
+  const covLine = covN
+    ? `<br>其中 <b>${covN}</b> 张封面图会先提交到 <code>images/covers/</code>。`
+    : "";
 
   $("pubSummary").innerHTML = errs.length
     ? `<b>注意：数据有 ${errs.length} 处问题</b><br>` + errs.slice(0, 6).map(esc).join("<br>") + (errs.length > 6 ? "<br>…" : "") + `<br><br>仍然可以提交，但站点构建可能失败。建议先修好。`
-    : `本次提交 <b>${D.total}</b> 项改动（共 ${n} 条工具 → <b>${esc(c.owner)}/${esc(c.repo)}</b>，分支 ${esc(c.branch)}）：` + list;
+    : `本次提交 <b>${D.total}</b> 项改动（共 ${n} 条工具 → <b>${esc(c.owner)}/${esc(c.repo)}</b>，分支 ${esc(c.branch)}）：` + list + covLine;
   $("pubSummary").className = errs.length ? "warnbox" : "okbox";
   $("pubResult").innerHTML = "";
   $("pubMsg").value = `更新工具条目（共 ${n} 条）`;
@@ -1232,15 +1285,41 @@ $("btnDoPub").addEventListener("click", async () => {
   result.innerHTML = "";
 
   try {
-    const r1 = await ghPutFile(c, c.path, buildToolsFile(), $("pubMsg").value.trim() || "更新工具条目", state.sha);
-    state.sha = (r1.content && r1.content.sha) || (r1.commit && r1.commit.sha) || state.sha;
+    const dataChanged = snapshot() !== state.baseline;
+    const covIds = pendingCoverIds();
+    let nCov = 0;
+
+    /* 1) 先传封面图。任何一张失败就中止，不提交 tools.js
+       —— 否则数据会指向一张并不存在的图 */
+    for (const id of covIds) {
+      const p = state.covers[id];
+      btn.textContent = `上传封面 ${nCov + 1}/${covIds.length}…`;
+      const buf = await p.blob.arrayBuffer();
+      let sha = null;
+      try { const old = await ghGetFile(c, p.target); if (old) sha = old.sha; } catch (err) { }
+      await ghPutFile(c, p.target, bufToB64(buf), `上传封面图 ${p.target}`, sha, true);
+      await cleanStaleCovers(c, id, p.fileName, p.prevCover);   // 换图后清掉同名旧扩展名
+      dropCoverPending(id);
+      nCov++;
+      markDirty();
+    }
+
+    /* 2) 数据没变就只传图：空提交会被 GitHub 拒绝，重新构建也没必要 */
+    let dataLine;
+    if (dataChanged) {
+      btn.textContent = "提交数据…";
+      const r1 = await ghPutFile(c, c.path, buildToolsFile(), $("pubMsg").value.trim() || "更新工具条目", state.sha);
+      state.sha = (r1.content && r1.content.sha) || (r1.commit && r1.commit.sha) || state.sha;
+      dataLine = `已提交 <b>${esc(c.path)}</b>。<br>GitHub Actions 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>`;
+    } else {
+      dataLine = `工具数据没有变化，只更新了 <b>${nCov}</b> 张封面图（同名直接覆盖），无需重新构建，约 1 分钟后生效。<br>`;
+    }
 
     state.baseline = snapshot();
     markDirty();
     renderList();
     result.innerHTML = `<div class="okbox">
-      已提交 <b>${esc(c.path)}</b>。<br>
-      GitHub Actions 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>
+      ${dataLine}
       <a href="https://github.com/${esc(c.owner)}/${esc(c.repo)}/commits/${esc(c.branch)}" target="_blank" rel="noopener noreferrer nofollow">查看提交记录 ↗</a>
     </div>`;
     toast("已提交到仓库", "ok");
