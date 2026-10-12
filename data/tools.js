@@ -213,7 +213,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: true, addedAt: "2026-10-04", status: "published", likes: 3241
   },
   {
-    id: "unsplash", slug: "unsplash", name: "Unsplash", icon: "🖼",
+    id: "unsplash", slug: "unsplash", name: "Unsplash", icon: "🖼", cover: "images/covers/unsplash.jpg",
     tagline: "高质量免费可商用图库",
     description: "几十万张摄影师投稿的高分辨率照片，全部免费可商用且无需署名。找封面图、配图、壁纸都很合适，按色调和构图筛选也方便。",
     category: "资源推荐", tags: ["图库", "免费商用", "高清"],
