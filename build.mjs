@@ -237,6 +237,32 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .dmeta{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
 .dmeta span{font-size:11.5px;background:var(--card-2);border:1px solid var(--line);color:#475569;padding:3px 11px;border-radius:20px}
 .ddesc{font-size:14px;line-height:2;color:#334155;background:var(--card-2);border-radius:12px;padding:16px 18px;border:1px solid var(--line)}
+
+/* 使用介绍（Markdown 渲染区） */
+.guide{margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.guide .gtit{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--primary-l);background:var(--card-2);border-bottom:1px solid var(--line);padding:12px 18px}
+.guide .gbody{padding:20px 22px;font-size:14px;line-height:1.95;color:#334155;overflow-wrap:break-word}
+.gbody h2{font-size:17px;font-weight:800;color:var(--ink);margin:22px 0 10px;padding-left:11px;border-left:4px solid var(--primary);line-height:1.5}
+.gbody h2:first-child{margin-top:0}
+.gbody h3{font-size:15px;font-weight:700;color:var(--ink);margin:18px 0 8px}
+.gbody h4,.gbody h5{font-size:14px;font-weight:700;color:var(--ink);margin:14px 0 6px}
+.gbody p{margin:0 0 12px}
+.gbody ul,.gbody ol{margin:0 0 12px;padding-left:24px}
+.gbody li{margin:5px 0}
+.gbody li::marker{color:var(--primary)}
+.gbody img{max-width:100%;height:auto;display:block;margin:14px auto;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.gbody code{background:var(--card-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.gbody pre{background:#0F172A;color:#E2E8F0;border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0 0 12px;font-size:12.5px;line-height:1.7}
+.gbody pre code{background:none;border:0;padding:0;color:inherit}
+.gbody blockquote{margin:0 0 12px;padding:10px 16px;border-left:4px solid var(--primary);background:var(--card-2);border-radius:0 10px 10px 0;color:#475569}
+.gbody blockquote p:last-child{margin-bottom:0}
+.gbody table{width:100%;border-collapse:collapse;margin:0 0 12px;font-size:13px;display:block;overflow-x:auto}
+.gbody th,.gbody td{border:1px solid var(--line);padding:7px 11px;text-align:left}
+.gbody th{background:var(--card-2);white-space:nowrap}
+.gbody a{color:var(--primary-l);font-weight:600}
+.gbody a:hover{text-decoration:underline}
+.gbody hr{border:none;border-top:1px dashed var(--line);margin:18px 0}
+.gbody b{color:var(--ink)}
 .dtags{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
 .dtags .ptag{font-size:11.5px;color:var(--cyan-d);background:rgba(6,182,212,.1);padding:2.5px 9px;border-radius:6px}
 .dacts{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
@@ -373,6 +399,10 @@ html.dark body{background:var(--bg);color:var(--ink)}
 html.dark header{background:rgba(17,26,44,.92)}
 html.dark .cdesc,html.dark .tintro,html.dark .dsub{color:#94A3B8}
 html.dark .ddesc{color:#B6C2D4;background:var(--card-2)}
+html.dark .gbody{color:#B6C2D4}
+html.dark .gbody h2,html.dark .gbody h3,html.dark .gbody h4,html.dark .gbody h5,html.dark .gbody b{color:var(--ink)}
+html.dark .gbody blockquote{color:#94A3B8}
+html.dark .gbody pre{background:#0B1220}
 html.dark .ptag{color:#67E8F9}
 html.dark .p-free{color:#6EE7B7}html.dark .p-open{color:#67E8F9}html.dark .p-freemium{color:#FCD34D}html.dark .p-paid{color:#CBD5E1}
 html.dark .dmeta span{background:var(--card-2);border-color:var(--line);color:#B6C2D4}
@@ -556,6 +586,121 @@ function rowHTML(t, relRoot) {
 }
 
 /* ============================================================
+ * Markdown 渲染（内置，无第三方依赖 —— CI 里只有 node build.mjs）
+ * 支持：标题#/##/###/####、段落、粗斜删、行内代码、围栏代码块、
+ *       图片、链接、有序/无序列表、引用、表格、分隔线。
+ * 输出前所有文本先做 HTML 转义，图片/链接仅接受转义后的安全属性。
+ * ============================================================ */
+function mdInline(s) {
+  const codes = [];
+  s = String(s).replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\x00C" + (codes.length - 1) + "\x00"; });
+  s = esc(s);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, (_, alt, src) => `<img src="${src}" alt="${alt}" loading="lazy" decoding="async">`);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g, (_, txt, href) => `<a href="${href}" target="_blank" rel="noopener noreferrer nofollow">${txt}</a>`);
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  s = s.replace(/~~([^~]+)~~/g, "<s>$1</s>");
+  s = s.replace(/\x00C(\d+)\x00/g, (_, i) => `<code>${esc(codes[Number(i)])}</code>`);
+  return s;
+}
+
+function mdToHtml(md) {
+  const lines = String(md || "").replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  const p = [];
+  const flushP = () => { if (p.length) { out.push(`<p>${p.map(mdInline).join("<br>")}</p>`); p.length = 0; } };
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
+    const fence = line.match(/^```(\S*)\s*$/);
+    if (fence) {
+      flushP();
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^```\s*$/.test(lines[i])) { buf.push(lines[i]); i++; }
+      i++;
+      out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`);
+      continue;
+    }
+
+    if (/^\s*$/.test(line)) { flushP(); i++; continue; }
+
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) { flushP(); const n = h[1].length + 1; out.push(`<h${n}>${mdInline(h[2])}</h${n}>`); i++; continue; }
+
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) { flushP(); out.push("<hr>"); i++; continue; }
+
+    if (/^\s*>\s?/.test(line)) {
+      flushP();
+      const buf = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
+      out.push(`<blockquote>${mdToHtml(buf.join("\n"))}</blockquote>`);
+      continue;
+    }
+
+    if (/^\s*\|.*\|\s*$/.test(line) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      flushP();
+      const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const head = cells(line);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+      out.push(`<table><thead><tr>${head.map(c => `<th>${mdInline(c)}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${mdInline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+      continue;
+    }
+
+    const isUl = /^\s*[-*+]\s+/.test(line);
+    const isOl = /^\s*\d+[.、)]\s+/.test(line);
+    if (isUl || isOl) {
+      flushP();
+      const re = isUl ? /^(\s*)[-*+]\s+/ : /^(\s*)\d+[.、)]\s+/;
+      const items = [];
+      while (i < lines.length) {
+        const m = lines[i].match(re);
+        if (m) { items.push({ indent: m[1].length, text: lines[i].replace(re, "") }); i++; }
+        else if (items.length && /^\s{2,}\S/.test(lines[i])) { items[items.length - 1].text += "<br>" + lines[i].trim(); i++; }
+        else break;
+      }
+      /* 支持一层嵌套：缩进 ≥2 的相邻项归入上一项的子列表 */
+      const html = [];
+      let k = 0;
+      while (k < items.length) {
+        if (items[k + 1] && items[k + 1].indent > items[k].indent) {
+          const sub = [];
+          let j = k + 1;
+          while (j < items.length && items[j].indent > items[k].indent) { sub.push(items[j].text); j++; }
+          html.push(`<li>${mdInline(items[k].text)}<${isUl ? "ul" : "ol"}>${sub.map(x => `<li>${mdInline(x)}</li>`).join("")}</${isUl ? "ul" : "ol"}></li>`);
+          k = j;
+        } else {
+          html.push(`<li>${mdInline(items[k].text)}</li>`);
+          k++;
+        }
+      }
+      out.push(`<${isUl ? "ul" : "ol"}>${html.join("")}</${isUl ? "ul" : "ol"}>`);
+      continue;
+    }
+
+    p.push(line.trim());
+    i++;
+  }
+  flushP();
+  return out.join("\n");
+}
+
+/* 读取工具的使用介绍 md：约定 guides/<slug>.md，也允许 tools.js 里用 guide 字段指定路径。
+   详情页在 /tool/ 子目录下，站内相对路径（图片/链接）统一补 ../ 前缀。 */
+function guideHTMLOf(t) {
+  const rel = String(t.guide || `guides/${t.slug}.md`).replace(/^\.\//, "");
+  try {
+    return mdToHtml(fs.readFileSync(path.join(root, rel), "utf8"))
+      .replace(/(src|href)="(?!https?:|\/|#|mailto:|\.\.\/|data:)([^"]*)"/g, (m, attr, u) => `${attr}="../${u}"`);
+  } catch (e) {
+    return "";
+  }
+}
+
+/* ============================================================
  * 详情页
  * ============================================================ */
 function detailPage(t) {
@@ -565,6 +710,7 @@ function detailPage(t) {
   const related = TOOLS.filter(x => x.category === t.category && x.id !== t.id).slice(0, 4);
   const canonical = `${SITE.url}/tool/${t.slug}.html`;
   const ogImg = cover ? `${SITE.url}/${String(t.cover).replace(/^\.\//, "")}` : `${SITE.url}/logo.jpg`;
+  const guideHtml = guideHTMLOf(t);
 
   const jsonld = {
     "@context": "https://schema.org",
@@ -603,7 +749,12 @@ function detailPage(t) {
       <span>🗓 收录于 ${esc(fmtDate(t.addedAt))}</span>
       <span>👍 ${esc(String(t.likes ?? 0))} 人点赞</span>
     </div>
-    <p class="ddesc">${esc(t.description)}</p>
+    ${guideHtml
+      ? `<section class="guide" aria-label="使用介绍">
+          <div class="gtit">📖 使用介绍</div>
+          <div class="gbody">${guideHtml}</div>
+        </section>`
+      : `<p class="ddesc">${esc(t.description)}</p>`}
     <div class="dtags">${(t.tags || []).map(x => `<span class="ptag">#${esc(x)}</span>`).join("")}</div>
     <div class="dacts">
       ${t.github ? `<a class="go" href="${esc(t.github)}" target="_blank" rel="noopener noreferrer nofollow">GitHub 仓库 ↗</a>` : ""}
@@ -892,6 +1043,8 @@ Allow: /
 Disallow: /data/
 Disallow: /vendor/
 Disallow: /images/covers/
+Disallow: /images/guides/
+Disallow: /guides/
 
 # 站长后台不入索引（接口路径同样屏蔽）
 Disallow: /admin

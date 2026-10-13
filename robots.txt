@@ -5,6 +5,8 @@ Allow: /
 Disallow: /data/
 Disallow: /vendor/
 Disallow: /images/covers/
+Disallow: /images/guides/
+Disallow: /guides/
 
 # 站长后台不入索引（接口路径同样屏蔽）
 Disallow: /admin

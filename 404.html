@@ -81,6 +81,32 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .dmeta{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
 .dmeta span{font-size:11.5px;background:var(--card-2);border:1px solid var(--line);color:#475569;padding:3px 11px;border-radius:20px}
 .ddesc{font-size:14px;line-height:2;color:#334155;background:var(--card-2);border-radius:12px;padding:16px 18px;border:1px solid var(--line)}
+
+/* 使用介绍（Markdown 渲染区） */
+.guide{margin-top:18px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.guide .gtit{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--primary-l);background:var(--card-2);border-bottom:1px solid var(--line);padding:12px 18px}
+.guide .gbody{padding:20px 22px;font-size:14px;line-height:1.95;color:#334155;overflow-wrap:break-word}
+.gbody h2{font-size:17px;font-weight:800;color:var(--ink);margin:22px 0 10px;padding-left:11px;border-left:4px solid var(--primary);line-height:1.5}
+.gbody h2:first-child{margin-top:0}
+.gbody h3{font-size:15px;font-weight:700;color:var(--ink);margin:18px 0 8px}
+.gbody h4,.gbody h5{font-size:14px;font-weight:700;color:var(--ink);margin:14px 0 6px}
+.gbody p{margin:0 0 12px}
+.gbody ul,.gbody ol{margin:0 0 12px;padding-left:24px}
+.gbody li{margin:5px 0}
+.gbody li::marker{color:var(--primary)}
+.gbody img{max-width:100%;height:auto;display:block;margin:14px auto;border-radius:10px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.gbody code{background:var(--card-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.gbody pre{background:#0F172A;color:#E2E8F0;border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0 0 12px;font-size:12.5px;line-height:1.7}
+.gbody pre code{background:none;border:0;padding:0;color:inherit}
+.gbody blockquote{margin:0 0 12px;padding:10px 16px;border-left:4px solid var(--primary);background:var(--card-2);border-radius:0 10px 10px 0;color:#475569}
+.gbody blockquote p:last-child{margin-bottom:0}
+.gbody table{width:100%;border-collapse:collapse;margin:0 0 12px;font-size:13px;display:block;overflow-x:auto}
+.gbody th,.gbody td{border:1px solid var(--line);padding:7px 11px;text-align:left}
+.gbody th{background:var(--card-2);white-space:nowrap}
+.gbody a{color:var(--primary-l);font-weight:600}
+.gbody a:hover{text-decoration:underline}
+.gbody hr{border:none;border-top:1px dashed var(--line);margin:18px 0}
+.gbody b{color:var(--ink)}
 .dtags{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
 .dtags .ptag{font-size:11.5px;color:var(--cyan-d);background:rgba(6,182,212,.1);padding:2.5px 9px;border-radius:6px}
 .dacts{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
@@ -203,7 +229,7 @@ footer .ftbrand img{width:18px;height:18px;border-radius:50%;object-fit:cover}
       <div class="tbody">
         <h2 class="ttitle">Android应用</h2>
         <p class="tintro">手机也能当生产力</p>
-        <div class="tmeta"><span>共 4 款工具</span></div>
+        <div class="tmeta"><span>共 3 款工具</span></div>
       </div>
     </a><a class="tool" href="/category/tutorial.html">
       <div class="tcover" style="background:linear-gradient(135deg,#34D399,#10B981)" aria-hidden="true"><span>📖</span></div>

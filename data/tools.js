@@ -17,6 +17,8 @@
  *   icon       卡片图标（emoji），无封面图时的回落显示
  *   cover      封面图路径（可选）。约定放 images/covers/<id>.jpg，站长后期自行上传；
  *              留空或文件不存在时，列表与详情页自动回落为分类渐变色块 + 图标
+ *   guide      使用介绍 md 路径（可选）。约定 guides/<id>.md，由 /admin 后台「一键上传 .md」维护；
+ *              文件存在时详情页用图文教程替换简单介绍框，配图放 images/guides/<id>/
  *   tagline    一句话简介，卡片上显示，建议 ≤ 16 字
  *   description 详细介绍，详情页正文，2–4 句
  *   category   所属分类（对应 categories.js 的 key）
@@ -77,7 +79,7 @@ window.SITE_TOOLS = [
     pricing: "free", featured: true, addedAt: "2026-10-08", status: "published", likes: 1108
   },
   {
-    id: "rufus", slug: "rufus", name: "Rufus", icon: "💾", cover: "images/covers/rufus.jpg",
+    id: "rufus", slug: "rufus", name: "Rufus", icon: "💾", cover: "images/covers/rufus.jpg", guide: "guides/rufus.md",
     tagline: "三分钟做好一个启动盘",
     description: "把 ISO 写成可启动 U 盘，体积不到 2MB 免安装。装 Windows 11 时可以顺手跳过 TPM 与联网账户检查，重装系统必备。",
     category: "系统工具", tags: ["U盘", "装系统", "免安装"],

@@ -114,6 +114,28 @@ main{padding:22px 0 90px}
 .coverbox .prev img{width:100%;height:100%;object-fit:cover}
 .coverbox .c1{flex:1;min-width:0}
 
+/* 使用介绍（Markdown） */
+.gbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gimgs{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.gimgs .gi{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);background:var(--card-2);border:1px dashed var(--line);border-radius:8px;padding:5px 10px}
+.gimgs .gi b{color:var(--text);font-weight:600;word-break:break-all}
+.gimgs .gi .x{margin-left:auto;color:var(--danger);cursor:pointer;font-weight:700;padding:0 5px;border-radius:5px}
+.gimgs .gi .x:hover{background:var(--danger-bg)}
+.gprev{margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--card-2);padding:14px 16px;font-size:13px;line-height:1.9;max-height:340px;overflow:auto;color:var(--text)}
+.gprev h2{font-size:15px;font-weight:800;margin:14px 0 8px;padding-left:9px;border-left:3px solid var(--primary)}
+.gprev h2:first-child{margin-top:0}
+.gprev h3{font-size:14px;font-weight:700;margin:12px 0 6px}
+.gprev p{margin:0 0 9px}
+.gprev ul,.gprev ol{margin:0 0 9px;padding-left:20px}
+.gprev img{max-width:100%;border-radius:8px;border:1px solid var(--line);margin:8px auto;display:block}
+.gprev code{background:#fff;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.gprev pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px;overflow-x:auto;font-size:12px;margin:0 0 9px}
+.gprev pre code{background:none;border:0;color:inherit}
+.gprev blockquote{margin:0 0 9px;padding:8px 12px;border-left:3px solid var(--primary);background:#fff;border-radius:0 8px 8px 0}
+.gprev table{border-collapse:collapse;margin:0 0 9px;font-size:12.5px}
+.gprev th,.gprev td{border:1px solid var(--line);padding:5px 9px;text-align:left}
+.gprev a{color:var(--primary-l)}
+
 /* 状态标签 */
 .st{font-size:11.5px;font-weight:700;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
 .st.pub{background:rgba(16,185,129,.14);color:var(--primary-d)}
@@ -128,6 +150,7 @@ main{padding:22px 0 90px}
 .k.add{background:rgba(16,185,129,.16);color:#047857}
 .k.chg{background:rgba(245,158,11,.18);color:#B45309}
 .k.cov{background:rgba(59,130,246,.16);color:#1D4ED8}
+.k.gd{background:rgba(139,92,246,.16);color:#6D28D9}
 .k.del{background:rgba(239,68,68,.14);color:#B91C1C}
 
 /* ---------- 提示条 ---------- */
@@ -235,7 +258,23 @@ main{padding:22px 0 90px}
       </div>
 
       <div class="field"><label for="eTagline">一句话简介 <span style="color:var(--danger)">*</span></label><input id="eTagline" placeholder="截图贴图长截图 OCR 一体化" maxlength="40"><p class="tip">列表行上显示，建议 16 字以内。</p></div>
-      <div class="field"><label for="eDesc">详细介绍</label><textarea id="eDesc" placeholder="2–4 句，说清楚它解决什么问题、适合谁用。"></textarea></div>
+      <div class="field"><label for="eDesc">详细介绍</label><textarea id="eDesc" placeholder="2–4 句，说清楚它解决什么问题、适合谁用。"></textarea><p class="tip">有「使用介绍」时，这行文字只用作搜索与 SEO 描述。</p></div>
+
+      <div class="field">
+        <label>使用介绍（Markdown · 可选）<span style="font-weight:400;color:var(--faint)">　有内容时详情页会用图文教程替换简单介绍框</span></label>
+        <div class="gbtns">
+          <button class="btn soft sm" id="btnGuideMd" type="button">📄 一键上传 .md 文件</button>
+          <button class="btn soft sm" id="btnGuideImgs" type="button">🖼 上传文中配图</button>
+          <button class="btn ghost sm" id="btnGuidePrev" type="button">预览效果</button>
+          <button class="btn ghost sm" id="btnGuideClear" type="button">清空</button>
+        </div>
+        <textarea id="eGuide" placeholder="支持 Markdown：## 小标题、**加粗**、列表、表格、引用、代码块……&#10;插图写 ![说明](截图1.png)，再点「上传文中配图」选中它，路径会自动改写。" style="margin-top:8px;min-height:170px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px"></textarea>
+        <div class="gimgs" id="gImgs" hidden></div>
+        <div class="gprev" id="gPrev" hidden></div>
+        <p class="tip" id="guideTip">.md 与配图都在点右下角「保存并发布」时才提交到仓库：md 存 <code>guides/工具id.md</code>，配图存 <code>images/guides/工具id/</code>（自动压缩，最长边 1280px）。</p>
+        <input type="file" id="fileGuideMd" accept=".md,.markdown,.txt" hidden>
+        <input type="file" id="fileGuideImgs" accept="image/*" multiple hidden>
+      </div>
 
       <div class="field">
         <label for="eTags">标签</label>
@@ -340,7 +379,7 @@ const CAT_GRAD = {
 
 /* 字段分组：决定序列化后每行放哪些字段，尽量贴近手工维护的可读格式 */
 const FIELD_LINES = [
-  ["id", "slug", "name", "icon", "cover"],
+  ["id", "slug", "name", "icon", "cover", "guide"],
   ["tagline"],
   ["description"],
   ["category", "tags"],
@@ -406,7 +445,8 @@ const state = {
   sha: null,          // data/tools.js 的 blob sha
   dirty: false,
   baseline: "",       // 载入时的快照，用于判断是否有改动
-  covers: {}          // 待提交的封面图：id -> { blob, ext, fileName, target, prevCover, url }
+  covers: {},         // 待提交的封面图：id -> { blob, ext, fileName, target, prevCover, url }
+  guides: {}          // 待提交的使用介绍：id -> { text, images:{name:{blob,ext,orig,target}}, target, remove?, editedIndex }
 };
 
 /* 分类渐变：优先用 categories.js 里的，保证与前台/构建产物一致 */
@@ -441,9 +481,27 @@ function coverNote() {
   return n ? `（含封面 ${n} 张）` : "";
 }
 
+/* ---------- 待提交的使用介绍（Markdown + 配图） ----------
+ * 与封面同一套路：编辑时只暂存内存，点「保存并发布」才提交仓库。
+ * text 为空且仓库里已有 md 时，发布流程会顺带删除 guides/<id>.md 与其配图目录。
+ */
+function pendingGuideIds() { return Object.keys(state.guides); }
+function ensureGuideEntry(id) {
+  if (!state.guides[id]) {
+    state.guides[id] = { text: $("eGuide").value, images: {}, target: `guides/${id}.md`, editedIndex: editingIndex };
+  }
+  return state.guides[id];
+}
+function dropGuidePending(id) { delete state.guides[id]; }
+function clearGuidePending() { pendingGuideIds().forEach(dropGuidePending); }
+function guideNote() {
+  const n = pendingGuideIds().length;
+  return n ? `（含使用介绍 ${n} 篇）` : "";
+}
+
 function markDirty() {
-  /* 只换了封面图时 state.tools 可能一字未变，但仓库里确实有东西要提交 */
-  state.dirty = snapshot() !== state.baseline || pendingCoverIds().length > 0;
+  /* 只换了封面图 / 只改了使用介绍时 state.tools 可能一字未变，但仓库里确实有东西要提交 */
+  state.dirty = snapshot() !== state.baseline || pendingCoverIds().length > 0 || pendingGuideIds().length > 0;
   paintBar();
 }
 
@@ -473,6 +531,12 @@ function diffInfo() {
     const t = state.tools.find(x => String(x.id) === id);
     if (t) { changed.push(t); seen.add(id); }
   });
+  /* 只改了使用介绍（md / 配图）的条目同样计入改动 */
+  pendingGuideIds().forEach(id => {
+    if (seen.has(id)) return;
+    const t = state.tools.find(x => String(x.id) === id);
+    if (t) { changed.push(t); seen.add(id); }
+  });
   return { changed, added, removed, total: changed.length + added.length + removed.length };
 }
 /* 待保存条目的可读摘要，如「PixPin、uTools 等 3 项」 */
@@ -487,9 +551,10 @@ function diffBrief(D, max) {
 /* 提交确认弹窗里的完整清单 */
 function diffListHTML(D) {
   const cov = id => (state.covers[id] ? '<span class="k cov">含封面</span>' : "");
+  const gd = id => (state.guides[id] ? '<span class="k gd">含介绍</span>' : "");
   const rows = []
-    .concat(D.added.map(t => `<li><span class="k add">新增</span>${esc(t.name || t.id)}${cov(t.id)}</li>`))
-    .concat(D.changed.map(t => `<li><span class="k chg">修改</span>${esc(t.name || t.id)}${cov(t.id)}</li>`))
+    .concat(D.added.map(t => `<li><span class="k add">新增</span>${esc(t.name || t.id)}${cov(t.id)}${gd(t.id)}</li>`))
+    .concat(D.changed.map(t => `<li><span class="k chg">修改</span>${esc(t.name || t.id)}${cov(t.id)}${gd(t.id)}</li>`))
     .concat(D.removed.map(id => `<li><span class="k del">删除</span>${esc(id)}</li>`));
   return rows.length ? `<ul class="dlist">${rows.join("")}</ul>` : "";
 }
@@ -695,8 +760,8 @@ function renderList() {
       const grad = gradOf(t.category);
       const pub = (t.status || "published") === "published";
       const cover = t.cover ? `<img src="${esc(t.cover)}" alt="" onerror="this.remove()">` : esc(t.icon || "🔧");
-      const mod = addIds.has(t.id) || chgIds.has(t.id) || !!state.covers[t.id];
-      const covTxt = state.covers[t.id] ? "·封面" : "";
+      const mod = addIds.has(t.id) || chgIds.has(t.id) || !!state.covers[t.id] || !!state.guides[t.id];
+      const covTxt = [state.covers[t.id] ? "·封面" : "", state.guides[t.id] ? "·介绍" : ""].join("");
       return `<div class="row ${pub ? "" : "draft"}${mod ? " mod" : ""}">
         <span class="rio" style="background:${grad}">${cover}</span>
         <div class="rmain">
@@ -741,7 +806,7 @@ function paintBar() {
     btn.textContent = "保存并发布" + cnt;
     btn.disabled = !state.dirty;
     $("barMsg").textContent = state.dirty
-      ? `待保存 ${D.total} 项改动：${diffBrief(D)}${coverNote()}`
+      ? `待保存 ${D.total} 项改动：${diffBrief(D)}${coverNote()}${guideNote()}`
       : "所有改动已保存";
   }
 }
@@ -902,6 +967,7 @@ $("rows").addEventListener("click", e => {
     const t = state.tools[i];
     if (!confirm(`确定删除「${t.name || t.id}」吗？\n\n删除后需要点「保存并发布」才会真正从站点移除。`)) return;
     dropCoverPending(t.id);   // 连同已选但未提交的封面一起丢掉，别给已删条目传图
+    dropGuidePending(t.id);   // 已载入未提交的使用介绍同样丢弃
     state.tools.splice(i, 1);
     renderList();
     toast(`已移除「${t.name}」，记得保存`);
@@ -949,6 +1015,23 @@ function openEditor(i) {
     paintCoverPrev(coverUrlOf(t.id), $("eIcon").value, t.category);
   } else {
     paintCoverPrev(t.cover, t.icon, t.category);
+  }
+
+  /* 使用介绍：优先读暂存；没有暂存且连着仓库时，把已有的 md 拉下来编辑 */
+  $("eGuide").value = "";
+  $("gPrev").hidden = true;
+  refreshGuideUI(t.id || "");
+  if (state.guides[t.id]) {
+    $("eGuide").value = state.guides[t.id].text || "";
+    refreshGuideUI(t.id);
+  } else if (!isNew && state.mode === "github") {
+    const idx = i;
+    const gp = String(t.guide || `guides/${t.id}.md`);
+    ghGetFile(cfg(), gp).then(f => {
+      if (f && editingIndex === idx && !$("eGuide").value.trim()) {
+        $("eGuide").value = f.text;
+      }
+    }).catch(() => { });
   }
 
   $("mEdit").classList.add("show");
@@ -1150,6 +1233,279 @@ $("fileCover").addEventListener("change", async e => {
   toast(`封面已就绪${cropTip}${saved}，点右下角「保存并发布」一起提交`, "ok");
 });
 
+/* ============================================================
+ * 使用介绍（Markdown）：一键上传 .md + 配图
+ * ============================================================ */
+
+/* ---------- Markdown → HTML（与 build.mjs 保持一致，仅用于后台预览） ---------- */
+function mdInlinePrev(s) {
+  const codes = [];
+  s = String(s).replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\x00C" + (codes.length - 1) + "\x00"; });
+  s = esc(s);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, (_, alt, src) => `<img src="${src}" alt="${alt}" loading="lazy">`);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g, (_, txt, href) => `<a href="${href}" target="_blank" rel="noopener noreferrer nofollow">${txt}</a>`);
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  s = s.replace(/~~([^~]+)~~/g, "<s>$1</s>");
+  s = s.replace(/\x00C(\d+)\x00/g, (_, i) => `<code>${esc(codes[Number(i)])}</code>`);
+  return s;
+}
+function mdToHtml(md) {
+  const lines = String(md || "").replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  const p = [];
+  const flushP = () => { if (p.length) { out.push(`<p>${p.map(mdInlinePrev).join("<br>")}</p>`); p.length = 0; } };
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const fence = line.match(/^```(\S*)\s*$/);
+    if (fence) {
+      flushP();
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^```\s*$/.test(lines[i])) { buf.push(lines[i]); i++; }
+      i++;
+      out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`);
+      continue;
+    }
+    if (/^\s*$/.test(line)) { flushP(); i++; continue; }
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) { flushP(); const n = h[1].length + 1; out.push(`<h${n}>${mdInlinePrev(h[2])}</h${n}>`); i++; continue; }
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) { flushP(); out.push("<hr>"); i++; continue; }
+    if (/^\s*>\s?/.test(line)) {
+      flushP();
+      const buf = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
+      out.push(`<blockquote>${mdToHtml(buf.join("\n"))}</blockquote>`);
+      continue;
+    }
+    if (/^\s*\|.*\|\s*$/.test(line) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      flushP();
+      const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const head = cells(line);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+      out.push(`<table><thead><tr>${head.map(c => `<th>${mdInlinePrev(c)}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${mdInlinePrev(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+      continue;
+    }
+    const isUl = /^\s*[-*+]\s+/.test(line);
+    const isOl = /^\s*\d+[.、)]\s+/.test(line);
+    if (isUl || isOl) {
+      flushP();
+      const re = isUl ? /^(\s*)[-*+]\s+/ : /^(\s*)\d+[.、)]\s+/;
+      const items = [];
+      while (i < lines.length) {
+        const m = lines[i].match(re);
+        if (m) { items.push({ indent: m[1].length, text: lines[i].replace(re, "") }); i++; }
+        else if (items.length && /^\s{2,}\S/.test(lines[i])) { items[items.length - 1].text += "<br>" + lines[i].trim(); i++; }
+        else break;
+      }
+      const html = [];
+      let k = 0;
+      while (k < items.length) {
+        if (items[k + 1] && items[k + 1].indent > items[k].indent) {
+          const sub = [];
+          let j = k + 1;
+          while (j < items.length && items[j].indent > items[k].indent) { sub.push(items[j].text); j++; }
+          html.push(`<li>${mdInlinePrev(items[k].text)}<${isUl ? "ul" : "ol"}>${sub.map(x => `<li>${mdInlinePrev(x)}</li>`).join("")}</${isUl ? "ul" : "ol"}></li>`);
+          k = j;
+        } else {
+          html.push(`<li>${mdInlinePrev(items[k].text)}</li>`);
+          k++;
+        }
+      }
+      out.push(`<${isUl ? "ul" : "ol"}>${html.join("")}</${isUl ? "ul" : "ol"}>`);
+      continue;
+    }
+    p.push(line.trim());
+    i++;
+  }
+  flushP();
+  return out.join("\n");
+}
+
+/* ---------- 编辑器内的小工具 ---------- */
+function guideLocalRefs(id, text) {
+  const found = [];
+  String(text || "").replace(/!\[[^\]]*\]\(([^)]+)\)/g, (_, u) => {
+    u = u.trim();
+    if (u && !/^https?:\/\//i.test(u) && !u.startsWith(`images/guides/${id}/`) && !u.startsWith("images/covers/")) found.push(u);
+    return _;
+  });
+  return found;
+}
+
+function refreshGuideUI(id) {
+  const box = $("gImgs");
+  const g = state.guides[id];
+  const names = g && !g.remove ? Object.keys(g.images || {}) : [];
+  if (!names.length) { box.hidden = true; box.innerHTML = ""; }
+  else {
+    box.hidden = false;
+    box.innerHTML = names.map(n => {
+      const img = g.images[n];
+      return `<div class="gi">🖼 <b>${esc(img.target)}</b><span style="color:var(--faint)">← ${esc(img.orig)}</span><span class="x" data-gdel="${esc(n)}" title="移除这张配图">✕</span></div>`;
+    }).join("");
+  }
+  const refs = guideLocalRefs(id, $("eGuide").value).length;
+  const base = `.md 与配图都在点右下角「保存并发布」时才提交到仓库：md 存 <code>guides/工具id.md</code>，配图存 <code>images/guides/工具id/</code>（自动压缩，最长边 1280px）。`;
+  $("guideTip").innerHTML = refs
+    ? `${base}<b style="color:var(--warn)">还有 ${refs} 个图片引用没有对应文件，请点「上传文中配图」选中它们。</b>`
+    : base;
+}
+
+/* 把 Markdown 里的本地图片引用改写为站点路径：按文件名（含不带扩展名）匹配 */
+function rewriteGuideRef(id, origName, target) {
+  const ta = $("eGuide");
+  const base = (() => { try { return decodeURIComponent(String(origName).split(/[\\/]/).pop()); } catch (e) { return String(origName).split(/[\\/]/).pop(); } })().toLowerCase();
+  const stem = base.replace(/\.[^.]+$/, "");
+  ta.value = String(ta.value).replace(/(!\[[^\]]*\]\()([^)]*)(\))/g, (m, pre, url, post) => {
+    const u = url.trim();
+    if (!u || /^https?:\/\//i.test(u) || u.startsWith("images/")) return m;
+    let dec = u;
+    try { dec = decodeURIComponent(u); } catch (e) { }
+    const b = dec.split(/[\\/]/).pop().toLowerCase();
+    if (b === base || (stem && b.replace(/\.[^.]+$/, "") === stem)) return pre + target + post;
+    return m;
+  });
+}
+
+/* 配图压缩：最长边 1280、质量 0.82，保持原比例（不裁 16:9） */
+const GUIDE_MAX = 1280;
+const GUIDE_LIMIT = 1200 * 1024;
+async function compressGuideImg(file, ext) {
+  if (ext === "gif") return { blob: file, ext };
+  const { img, url } = await loadImageEl(file);
+  try {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if (!w || !h) return { blob: file, ext };
+    const scale = Math.min(1, GUIDE_MAX / Math.max(w, h));
+    const tw = Math.max(1, Math.round(w * scale)), th = Math.max(1, Math.round(h * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = tw; canvas.height = th;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return { blob: file, ext };
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, tw, th);
+    let type = "image/jpeg", quality = 0.82;
+    if (ext === "png") { if (ctxHasAlpha(ctx, tw, th)) { type = "image/png"; quality = undefined; } }
+    else if (ext === "webp" || ext === "avif") type = "image/webp";
+    const blob = await new Promise(res => canvas.toBlob(res, type, quality));
+    if (!blob || blob.size >= file.size) return { blob: file, ext };
+    return { blob, ext: MIME_EXT[blob.type] || ext };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* 新增条目先传图后改 id 时，把暂存整体迁到新 id 名下 */
+function rekeyNewGuide(newId) {
+  for (const k of Object.keys(state.guides)) {
+    const g = state.guides[k];
+    if (g.editedIndex !== -1 || k === newId) continue;
+    state.guides[newId] = g;
+    delete state.guides[k];
+    g.target = `guides/${newId}.md`;
+    const re = new RegExp("images/guides/" + k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "/", "g");
+    g.text = String(g.text || "").replace(re, `images/guides/${newId}/`);
+    for (const n of Object.keys(g.images)) {
+      g.images[n].target = g.images[n].target.replace(`images/guides/${k}/`, `images/guides/${newId}/`);
+    }
+  }
+}
+
+$("btnGuideMd").addEventListener("click", () => {
+  if (state.mode !== "github") { toast("上传 .md 需要先连接 GitHub 仓库（本地模式无法提交 md 文件）", "err"); return; }
+  if (!ID_RE.test($("eId").value.trim())) { toast("请先填写合法的 id，md 会按 id 命名存到 guides/", "err"); $("eId").focus(); return; }
+  $("fileGuideMd").click();
+});
+
+$("fileGuideMd").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  const id = $("eId").value.trim();
+  try {
+    const text = await f.text();
+    $("eGuide").value = text;
+    ensureGuideEntry(id).text = text;
+    $("gPrev").hidden = true;
+    const refs = guideLocalRefs(id, text).length;
+    refreshGuideUI(id);
+    renderList();
+    toast(refs ? `已载入 ${f.name}；发现 ${refs} 个本地图片引用，请点「上传文中配图」选中这些图片` : `已载入 ${f.name}，点「预览效果」查看排版`, "ok");
+  } catch (err) {
+    toast("读取 .md 失败：" + err.message, "err");
+  }
+});
+
+$("btnGuideImgs").addEventListener("click", () => {
+  if (state.mode !== "github") { toast("上传配图需要先连接 GitHub 仓库（本地模式无法提交图片）", "err"); return; }
+  if (!ID_RE.test($("eId").value.trim())) { toast("请先填写合法的 id，配图会按 id 归档到 images/guides/", "err"); $("eId").focus(); return; }
+  $("fileGuideImgs").click();
+});
+
+$("fileGuideImgs").addEventListener("change", async e => {
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";
+  if (!files.length) return;
+  const id = $("eId").value.trim();
+  const btn = $("btnGuideImgs");
+  btn.disabled = true; btn.textContent = "处理中…";
+  const g = ensureGuideEntry(id);
+  let done = 0, skipped = 0;
+  for (const f of files) {
+    let ext = pickCoverExt(f);
+    if (!ext) { skipped++; continue; }
+    let out = f;
+    try { const r = await compressGuideImg(f, ext); out = r.blob; ext = r.ext; } catch (err) { }
+    if (out.size > GUIDE_LIMIT) { skipped++; toast(`「${f.name}」压缩后仍超过 1.2MB，已跳过`, "err"); continue; }
+    const n = Object.keys(g.images).length + 1;
+    const finalName = `${id}-${String(n).padStart(2, "0")}.${ext}`;
+    const target = `images/guides/${id}/${finalName}`;
+    g.images[finalName] = { blob: out, ext, orig: f.name, target };
+    rewriteGuideRef(id, f.name, target);
+    done++;
+  }
+  g.text = $("eGuide").value;
+  refreshGuideUI(id);
+  renderList();
+  btn.disabled = false; btn.textContent = "🖼 上传文中配图";
+  if (done) toast(`已就绪 ${done} 张配图${skipped ? `，跳过 ${skipped} 张` : ""}，引用路径已写进 Markdown，「保存并发布」时一起提交`, "ok");
+  else if (skipped) toast(`没有可用的图片（跳过 ${skipped} 张），请确认格式为 JPG / PNG / WebP / GIF / AVIF`, "err");
+});
+
+$("gImgs").addEventListener("click", e => {
+  const x = e.target.closest("[data-gdel]");
+  if (!x) return;
+  const id = $("eId").value.trim();
+  const g = state.guides[id];
+  if (g) { delete g.images[x.dataset.gdel]; refreshGuideUI(id); }
+});
+
+$("btnGuidePrev").addEventListener("click", () => {
+  const box = $("gPrev");
+  if (!box.hidden) { box.hidden = true; return; }
+  const txt = $("eGuide").value.trim();
+  if (!txt) { toast("先粘贴或载入 Markdown 内容再预览", "err"); return; }
+  box.innerHTML = mdToHtml(txt);
+  box.hidden = false;
+});
+
+$("btnGuideClear").addEventListener("click", () => {
+  $("eGuide").value = "";
+  $("gPrev").hidden = true;
+  const id = $("eId").value.trim();
+  if (state.guides[id]) { state.guides[id].text = ""; state.guides[id].images = {}; }
+  refreshGuideUI(id);
+  toast("已清空使用介绍；若仓库里已有，会在「保存并发布」时一并删除");
+});
+
+$("eGuide").addEventListener("input", () => {
+  const id = $("eId").value.trim();
+  if (state.guides[id]) state.guides[id].text = $("eGuide").value;
+});
+
 /* 把编辑表单写回内存（不提交仓库）。校验通过返回 true。
  * 「确定」和「确定并编辑下一条」共用，方便连续编辑多条后一次发布。 */
 function saveToolForm() {
@@ -1192,9 +1548,23 @@ function saveToolForm() {
   };
 
   // 清掉空字段，保持数据文件干净
-  ["icon", "cover", "description", "github"].forEach(k => { if (!rec[k]) delete rec[k]; });
+  ["icon", "cover", "description", "github", "guide"].forEach(k => { if (!rec[k]) delete rec[k]; });
   if (!rec.tags.length) delete rec.tags;
   if (!rec.platform.length) delete rec.platform;
+
+  /* ---- 使用介绍：登记暂存 / 迁移 id / 标记删除 ---- */
+  const guideText = $("eGuide").value.trim();
+  if (editingIndex < 0) rekeyNewGuide(id);
+  if (guideText) {
+    const g = ensureGuideEntry(id);
+    g.text = $("eGuide").value;
+    g.target = `guides/${id}.md`;
+    rec.guide = g.target;
+  } else if (state.guides[id]) {
+    state.guides[id].remove = true;   // 清空了内容：发布时删掉仓库里的 md 和配图
+  } else if (editingIndex >= 0 && state.tools[editingIndex].guide) {
+    state.guides[id] = { remove: true, images: {}, target: `guides/${id}.md`, editedIndex: editingIndex };
+  }
 
   if (editingIndex < 0) state.tools.push(rec);
   else state.tools[editingIndex] = rec;
@@ -1245,9 +1615,14 @@ $("btnDiscard").addEventListener("click", () => {
   const D = diffInfo();
   const who = diffBrief(D, 6);
   const covN = pendingCoverIds().length;
-  const covLine = covN ? `\n\n其中 ${covN} 张已选但未提交的封面图会被丢弃（需要重新选图）。` : "";
-  if (!confirm(`放弃全部 ${D.total} 项未保存的改动？\n\n${who}${covLine}\n\n将回到上次载入 / 上次发布的状态。`)) return;
+  const gN = pendingGuideIds().length;
+  const extra = [
+    covN ? `\n其中 ${covN} 张已选但未提交的封面图会被丢弃（需要重新选图）。` : "",
+    gN ? `\n其中 ${gN} 篇已载入但未提交的使用介绍会被丢弃（需要重新上传）。` : ""
+  ].join("");
+  if (!confirm(`放弃全部 ${D.total} 项未保存的改动？\n\n${who}${extra}\n\n将回到上次载入 / 上次发布的状态。`)) return;
   clearCoverPending();
+  clearGuidePending();
   if (state.mode === "github") $("btnConnect").click();
   else if (state.mode === "local") $("fileImport").click();
 });
@@ -1260,13 +1635,15 @@ $("btnPublish").addEventListener("click", () => {
   const D = diffInfo();
   const list = diffListHTML(D);
   const covN = pendingCoverIds().length;
-  const covLine = covN
-    ? `<br>其中 <b>${covN}</b> 张封面图会先提交到 <code>images/covers/</code>。`
-    : "";
+  const gN = pendingGuideIds().length;
+  const extra = [
+    covN ? `其中 <b>${covN}</b> 张封面图会先提交到 <code>images/covers/</code>。` : "",
+    gN ? `其中 <b>${gN}</b> 篇使用介绍（Markdown + 配图）会先提交到 <code>guides/</code> 与 <code>images/guides/</code>。` : ""
+  ].filter(Boolean).join("<br>");
 
   $("pubSummary").innerHTML = errs.length
     ? `<b>注意：数据有 ${errs.length} 处问题</b><br>` + errs.slice(0, 6).map(esc).join("<br>") + (errs.length > 6 ? "<br>…" : "") + `<br><br>仍然可以提交，但站点构建可能失败。建议先修好。`
-    : `本次提交 <b>${D.total}</b> 项改动（共 ${n} 条工具 → <b>${esc(c.owner)}/${esc(c.repo)}</b>，分支 ${esc(c.branch)}）：` + list + covLine;
+    : `本次提交 <b>${D.total}</b> 项改动（共 ${n} 条工具 → <b>${esc(c.owner)}/${esc(c.repo)}</b>，分支 ${esc(c.branch)}）：` + list + (extra ? `<br>${extra}` : "");
   $("pubSummary").className = errs.length ? "warnbox" : "okbox";
   $("pubResult").innerHTML = "";
   $("pubMsg").value = `更新工具条目（共 ${n} 条）`;
@@ -1288,8 +1665,67 @@ $("btnDoPub").addEventListener("click", async () => {
     const dataChanged = snapshot() !== state.baseline;
     const covIds = pendingCoverIds();
     let nCov = 0;
+    let nGd = 0;
 
-    /* 1) 先传封面图。任何一张失败就中止，不提交 tools.js
+    /* 0) 使用介绍：先传配图，再传 .md；清空的条目删除仓库里的 md 与配图。
+       任何一步失败就中止，不提交 tools.js —— 否则数据会指向不存在的文件。 */
+    const gIds = pendingGuideIds();
+    for (const gid of gIds) {
+      const g = state.guides[gid];
+      if (g.remove) {
+        btn.textContent = `删除使用介绍 ${gid}…`;
+        try {
+          const md = await ghGetFile(c, `guides/${gid}.md`);
+          if (md) await ghDeleteFile(c, `guides/${gid}.md`, `删除使用介绍 guides/${gid}.md`, md.sha);
+        } catch (err) { }
+        try {
+          const dir = await ghListDir(c, `images/guides/${gid}`);
+          for (const f of dir) {
+            if (f.type === "file") await ghDeleteFile(c, f.path, `删除配图 ${f.path}`, f.sha);
+          }
+        } catch (err) { }
+        dropGuidePending(gid);
+        nGd++;
+        markDirty();
+        continue;
+      }
+
+      /* 配图：keep 集合 = 新传的 + md 里仍然引用的，目录里其余的旧图清掉 */
+      const keep = new Set();
+      const imgNames = Object.keys(g.images || {});
+      for (let k = 0; k < imgNames.length; k++) {
+        const img = g.images[imgNames[k]];
+        btn.textContent = `上传配图 ${k + 1}/${imgNames.length}…`;
+        const buf = await img.blob.arrayBuffer();
+        await ghPutFile(c, img.target, bufToB64(buf), `上传使用介绍配图 ${img.target}`, null, true);
+        keep.add(img.target.split("/").pop());
+      }
+      const mdRefs = String(g.text || "").match(/!\[[^\]]*\]\((images\/guides\/[^)]+)\)/g) || [];
+      mdRefs.forEach(m => {
+        const p = m.replace(/!\[[^\]]*\]\(/, "").replace(/\)$/, "");
+        keep.add(p.split("/").pop());
+      });
+
+      btn.textContent = `上传使用介绍 ${nGd + 1}/${gIds.length}…`;
+      let mdSha = null;
+      try { const old = await ghGetFile(c, g.target); if (old) mdSha = old.sha; } catch (err) { }
+      await ghPutFile(c, g.target, g.text || "", `更新使用介绍 ${g.target}`, mdSha, false);
+
+      try {
+        const dir = await ghListDir(c, `images/guides/${gid}`);
+        for (const f of dir) {
+          if (f.type === "file" && !keep.has(f.name)) {
+            await ghDeleteFile(c, f.path, `清理未引用配图 ${f.path}`, f.sha);
+          }
+        }
+      } catch (err) { }
+
+      dropGuidePending(gid);
+      nGd++;
+      markDirty();
+    }
+
+    /* 1) 再传封面图。任何一张失败就中止，不提交 tools.js
        —— 否则数据会指向一张并不存在的图 */
     for (const id of covIds) {
       const p = state.covers[id];
@@ -1304,15 +1740,18 @@ $("btnDoPub").addEventListener("click", async () => {
       markDirty();
     }
 
-    /* 2) 数据没变就只传图：空提交会被 GitHub 拒绝，重新构建也没必要 */
+    /* 2) 数据没变就只传附件：空提交会被 GitHub 拒绝。
+       但使用介绍的 md 会改变详情页渲染，上传过 md 就需要等 CI 重建。 */
     let dataLine;
     if (dataChanged) {
       btn.textContent = "提交数据…";
       const r1 = await ghPutFile(c, c.path, buildToolsFile(), $("pubMsg").value.trim() || "更新工具条目", state.sha);
       state.sha = (r1.content && r1.content.sha) || (r1.commit && r1.commit.sha) || state.sha;
       dataLine = `已提交 <b>${esc(c.path)}</b>。<br>GitHub Actions 会检测到这次推送并自动重新构建，通常 1 分钟内生效。<br>`;
+    } else if (nGd > 0) {
+      dataLine = `已上传 <b>${nGd}</b> 篇使用介绍（含配图），GitHub Actions 会自动重新构建详情页，约 1 分钟生效。<br>`;
     } else {
-      dataLine = `工具数据没有变化，只更新了 <b>${nCov}</b> 张封面图（同名直接覆盖），无需重新构建，约 1 分钟后生效。<br>`;
+      dataLine = `工具数据没有变化，只更新了 <b>${nCov}</b> 张封面图（同名直接覆盖）。<br>`;
     }
 
     state.baseline = snapshot();
