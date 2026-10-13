@@ -88,7 +88,7 @@ window.SITE_TOOLS = [
   },
   {
     id: "ventoy", slug: "ventoy", name: "Ventoy", icon: "🧩", cover: "images/covers/ventoy.jpg", guide: "guides/ventoy.md",
-    tagline: "一个 U 盘装多个系统镜像",
+    tagline: "Ventoy一个 U 盘同时支持装多个系统Windows/Linux/",
     description: "装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的终极方案。",
     category: "系统工具", tags: ["多合一", "启动盘", "开源"],
     url: "https://www.ventoy.net", github: "https://github.com/ventoy/Ventoy", platform: ["Windows", "Linux"],
