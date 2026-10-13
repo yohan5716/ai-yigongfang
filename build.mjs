@@ -494,7 +494,8 @@ const FAB_THEME_INIT = `<script>try{if(JSON.parse(localStorage.getItem("aiygf:th
  * 页面骨架
  * ============================================================ */
 function shell({ title, desc, canonical, ogImg, jsonld, body, relRoot = "..", withShare = false, fab = false }) {
-  const qrSrc = `${relRoot ? relRoot + "/" : ""}vendor/qrcode.js`;
+  /* relRoot="" 的页面（404）在任意 URL 路径下返回，必须用根路径绝对地址 */
+  const qrSrc = `${relRoot}/vendor/qrcode.js`;
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -803,7 +804,8 @@ function detailPage(t) {
     jsonld,
     body,
     relRoot: "..",
-    withShare: true
+    withShare: true,
+    fab: true
   });
 }
 
@@ -954,7 +956,8 @@ function notFoundPage() {
     ogImg: `${SITE.url}/logo.jpg`,
     jsonld: { "@context": "https://schema.org", "@type": "WebPage", name: "404", isPartOf: { "@type": "WebSite", name: SITE.name, url: SITE.url } },
     body,
-    relRoot: ""
+    relRoot: "",
+    fab: true
   });
 }
 
@@ -997,7 +1000,8 @@ ${p.body()}
       publisher: { "@type": "Person", name: SITE.owner }
     },
     body,
-    relRoot: "."
+    relRoot: ".",
+    fab: true
   });
 }
 /* ============================================================
