@@ -137,6 +137,14 @@ window.SITE_TOOLS = [
     url: "https://www.capcut.cn", platform: ["Windows", "macOS"],
     pricing: "free", featured: true, addedAt: "2026-09-29", status: "published", likes: 2157
   },
+  {
+    id: "asr", slug: "asrtools", name: "ASR-Tools", icon: "🧩", cover: "images/covers/asr.jpg",
+    tagline: "ASR-Tools 一键分离音频 / 字幕，获取短视频脚本最快的小工具",
+    description: "一键分离音频 / 字幕，快速获取短视频脚本，多线程并发+批量处理，文字转换快如闪电。支持生成 .srt 和 .txt 、ass 字幕文件，满足不同需求。",
+    category: "音视频处理", tags: ["音频分离", "生成字幕", "脚本获取"],
+    github: "https://github.com/WEIFENG2333/AsrTools", platform: ["Windows"],
+    pricing: "free", featured: true, addedAt: "2026-10-13", status: "published", likes: 6314
+  },
 
   /* ---------- Android应用 ---------- */
   {
