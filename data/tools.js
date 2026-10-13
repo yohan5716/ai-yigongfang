@@ -143,7 +143,7 @@ window.SITE_TOOLS = [
     description: "一键分离音频 / 字幕，快速获取短视频脚本，多线程并发+批量处理，文字转换快如闪电。支持生成 .srt 和 .txt 、ass 字幕文件，满足不同需求。",
     category: "音视频处理", tags: ["音频分离", "生成字幕", "脚本获取"],
     github: "https://github.com/WEIFENG2333/AsrTools", platform: ["Windows"],
-    pricing: "free", featured: true, addedAt: "2026-10-13", status: "published", likes: 6314
+    pricing: "open", featured: true, addedAt: "2026-10-13", status: "published", likes: 6314
   },
   {
     id: "snow-hot", slug: "snow-hot", name: "Snow Shot", cover: "images/covers/snow-hot.jpg",
@@ -155,7 +155,7 @@ window.SITE_TOOLS = [
   },
   {
     id: "bili23", slug: "bili23", name: "Bili23-Downloader", icon: "🎥", cover: "images/covers/bili23.jpg",
-    tagline: "Bili23-Downloader  B 站视频下载支持多线程加速、音视频分离、弹幕元数据获取",
+    tagline: "B 站视频下载支持多线程加速、音视频分离、弹幕元数据获取",
     description: "开源、免费、跨平台的 B 站视频下载工具，支持多线程加速、音视频分离、弹幕元数据获取、自定义命名与分类等功能。Open Source, Free, Cross-Platform Bilibili Video Downloader.",
     category: "音视频处理", tags: ["音视频分离", "弹幕获取"],
     url: "https://bili23.scott-sloan.cn/", github: "https://github.com/ScottSloan/Bili23-Downloader", platform: ["Windows", "macOS", "Linux"],
