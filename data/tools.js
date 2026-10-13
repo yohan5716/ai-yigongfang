@@ -145,6 +145,14 @@ window.SITE_TOOLS = [
     github: "https://github.com/WEIFENG2333/AsrTools", platform: ["Windows"],
     pricing: "free", featured: true, addedAt: "2026-10-13", status: "published", likes: 6314
   },
+  {
+    id: "snow-hot", slug: "snow-hot", name: "Snow Shot", cover: "images/covers/snow-hot.jpg",
+    tagline: "Snow Shot 在同一个窗口截图、标注、文字识别和录屏    优雅/高效",
+    description: "Snow Shot 是一款跨平台的开源工具，把截图、标注、文字识别和录屏放在一个专注的工作流里，也欢迎更多想法让它变得更好。",
+    category: "音视频处理", tags: ["截图", "标注", "文字识别", "录屏"],
+    url: "https://snowshot.top/", github: "https://github.com/mg-chao/snow-apps", platform: ["Windows", "macOS"],
+    pricing: "open", featured: true, addedAt: "2026-10-13", status: "published", likes: 6993
+  },
 
   /* ---------- Android应用 ---------- */
   {
