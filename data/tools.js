@@ -153,6 +153,14 @@ window.SITE_TOOLS = [
     url: "https://snowshot.top/", github: "https://github.com/mg-chao/snow-apps", platform: ["Windows", "macOS"],
     pricing: "open", featured: true, addedAt: "2026-10-13", status: "published", likes: 6993
   },
+  {
+    id: "bili23", slug: "bili23", name: "Bili23-Downloader", icon: "🎥", cover: "images/covers/bili23.jpg",
+    tagline: "Bili23-Downloader  B 站视频下载支持多线程加速、音视频分离、弹幕元数据获取",
+    description: "开源、免费、跨平台的 B 站视频下载工具，支持多线程加速、音视频分离、弹幕元数据获取、自定义命名与分类等功能。Open Source, Free, Cross-Platform Bilibili Video Downloader.",
+    category: "音视频处理", tags: ["音视频分离", "弹幕获取"],
+    url: "https://bili23.scott-sloan.cn/", github: "https://github.com/ScottSloan/Bili23-Downloader", platform: ["Windows", "macOS", "Linux"],
+    pricing: "open", featured: true, addedAt: "2026-10-13", status: "published", likes: 7132
+  },
 
   /* ---------- Android应用 ---------- */
   {
