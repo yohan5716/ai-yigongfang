@@ -81,7 +81,7 @@ window.SITE_TOOLS = [
   },
   {
     id: "rufus", slug: "rufus", name: "Rufus", icon: "💾", cover: "images/covers/rufus.jpg", guide: "guides/rufus.md",
-    tagline: "三分钟做好一个启动盘",
+    tagline: "Rufus 让你三分钟做好一个启动盘/小白优选",
     description: "把 ISO 写成可启动 U 盘，体积不到 2MB 免安装。装 Windows 11 时可以顺手跳过 TPM 与联网账户检查，重装系统必备。",
     category: "系统工具", tags: ["U盘", "装系统", "免安装"],
     url: "https://rufus.ie", github: "https://github.com/pbatard/rufus", platform: ["Windows"],
