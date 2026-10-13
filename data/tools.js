@@ -97,7 +97,7 @@ window.SITE_TOOLS = [
   },
   {
     id: "trafficmonitor", slug: "trafficmonitor", name: "TrafficMonitor", icon: "📶", cover: "images/covers/trafficmonitor.jpg",
-    tagline: "TrafficMonitor   实时网速与CPU占用率监控 / 小巧轻便 / 资源占用少",
+    tagline: "TrafficMonitor  任务栏实时网速与占用监控 / 小巧轻便",
     description: "把上传下载速度、CPU 和内存占用直接嵌进任务栏，或者在桌面悬浮一个小窗。开源无广告，比各种捆绑了全家桶的监控软件干净得多。",
     category: "系统工具", tags: ["监控", "网速", "开源"],
     url: "https://zhongyang219.github.io/TrafficMonitor", github: "https://github.com/zhongyang219/TrafficMonitor", platform: ["Windows"],
