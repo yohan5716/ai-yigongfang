@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ventoy - 一个 U 盘装多个系统镜像 | AI义工坊</title>
+<title>Ventoy - Ventoy一个 U 盘同时支持装多个系统Windows/Linux/ | AI义工坊</title>
 <meta name="description" content="装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的">
 <meta name="theme-color" content="#10B981">
 <meta name="robots" content="index,follow">
@@ -12,12 +12,12 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="AI义工坊">
-<meta property="og:title" content="Ventoy - 一个 U 盘装多个系统镜像 | AI义工坊">
+<meta property="og:title" content="Ventoy - Ventoy一个 U 盘同时支持装多个系统Windows/Linux/ | AI义工坊">
 <meta property="og:description" content="装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的">
 <meta property="og:url" content="https://ygf.de5.net/tool/ventoy.html">
 <meta property="og:image" content="https://ygf.de5.net/images/covers/ventoy.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ventoy - 一个 U 盘装多个系统镜像 | AI义工坊">
+<meta name="twitter:title" content="Ventoy - Ventoy一个 U 盘同时支持装多个系统Windows/Linux/ | AI义工坊">
 <meta name="twitter:description" content="装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的">
 <meta name="twitter:image" content="https://ygf.de5.net/images/covers/ventoy.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Ventoy","description":"装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的终极方案。","url":"https://ygf.de5.net/tool/ventoy.html","sameAs":["https://www.ventoy.net","https://github.com/ventoy/Ventoy"],"downloadUrl":"https://github.com/ventoy/Ventoy","operatingSystem":"Windows, Linux","applicationCategory":"系统工具","datePublished":"2026-09-30","offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"author":{"@type":"Person","name":"Yohan"},"isPartOf":{"@type":"WebSite","name":"AI义工坊","url":"https://ygf.de5.net"}}</script>
@@ -75,9 +75,10 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .cover .new{position:absolute;top:12px;left:12px;background:#EF4444;color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;padding:3px 10px;border-radius:7px}
 .dcard{background:var(--card);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);padding:24px;margin-top:16px}
 .dtitle{font-size:24px;font-weight:800;line-height:1.4;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dtitle.toolname{font-size:19px;font-weight:700;letter-spacing:0}
 .dtitle em.pick{font-style:normal;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),#06B6D4);padding:3px 10px;border-radius:8px}
 .dtitle .pricing{font-size:11px;padding:3px 9px;border-radius:7px}
-.dsub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.7}
+.dsub{font-size:26px;font-weight:800;color:var(--ink);margin-top:12px;line-height:1.45;letter-spacing:-.01em}
 .dmeta{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
 .dmeta span{font-size:11.5px;background:var(--card-2);border:1px solid var(--line);color:#475569;padding:3px 11px;border-radius:20px}
 .ddesc{font-size:14px;line-height:2;color:#334155;background:var(--card-2);border-radius:12px;padding:16px 18px;border:1px solid var(--line)}
@@ -203,15 +204,41 @@ footer .ftbrand img{width:18px;height:18px;border-radius:50%;object-fit:cover}
   </div>
 
   <article class="dcard">
-    <h1 class="dtitle">Ventoy<em class="pick">站长推荐</em><span class="pricing p-open">开源免费</span></h1>
-    <p class="dsub">一个 U 盘装多个系统镜像</p>
+    <h1 class="dtitle toolname">Ventoy<em class="pick">站长推荐</em><span class="pricing p-open">开源免费</span></h1>
+    <p class="dsub">Ventoy一个 U 盘同时支持装多个系统Windows/Linux/</p>
     <div class="dmeta">
       <span>📂 系统工具</span>
       <span>💻 Windows / Linux</span>
       <span>🗓 收录于 2026/9/30</span>
       <span>👍 1327 人点赞</span>
     </div>
-    <p class="ddesc">装一次 Ventoy，之后把 ISO 文件直接拷进 U 盘就能启动，不用反复格式化。同时放 Windows、Ubuntu、PE 工具箱镜像也没问题，是装机的终极方案。</p>
+    <section class="guide" aria-label="使用介绍">
+          <div class="gtit">📖 使用介绍</div>
+          <div class="gbody"><p>Ventoy 是一个开源的 U 盘启动盘工具，和 Rufus 的思路完全不一样：Rufus 每做一次盘都要重新写入、写入前还得格式化；而 Ventoy 只需要往 U 盘里装一次，之后想加什么系统，把 ISO 文件直接拷进去就能启动，不用反复格式化。下面是完整的使用流程。</p>
+<h3>准备工作</h3>
+<ul><li>一个 <b>8GB 以上</b>的 U 盘（建议 16GB 或更大；首次安装会清空全部数据，重要文件先备份）</li><li>要用的系统镜像（ISO），例如 Windows、Ubuntu、PE 工具箱等，从哪下载都行</li><li>一台 Windows 电脑（Ventoy 也有 Linux 版，用法类似）</li></ul>
+<h3>使用步骤</h3>
+<h4>第 1 步：安装 Ventoy 到 U 盘</h4>
+<p>从官网下载压缩包，解压后双击运行 <code>Ventoy2Disk.exe</code>。插入 U 盘，在「设备」下拉框里确认选中的是正确的 U 盘，点击「安装」。</p>
+<p><img src="../images/guides/ventoy/ventoy-01.jpg" alt="" loading="lazy" decoding="async"></p>
+<p>安装界面上的选项保持默认即可，几秒钟就能装完：</p>
+<table><thead><tr><th>选项</th><th>推荐值</th><th>说明</th></tr></thead><tbody><tr><td>分区类型</td><td>GPT</td><td>新电脑（UEFI 启动）选这个</td></tr><tr><td>文件系统</td><td>exFAT</td><td>单个文件超过 4GB 也能放，通用性最好</td></tr><tr><td>预留空间</td><td>不勾选</td><td>无需为旧数据预留</td></tr></tbody></table>
+<blockquote><p><b>提示</b>：安装会清空 U 盘全部数据，但<b>只需要做这一次</b>。以后往 U 盘里加减系统镜像，都不用再重复安装。</p></blockquote>
+<p><img src="../images/guides/ventoy/ventoy-02.jpg" alt="" loading="lazy" decoding="async"></p>
+<p><img src="../images/guides/ventoy/ventoy-03.jpg" alt="" loading="lazy" decoding="async"></p>
+<p><img src="../images/guides/ventoy/ventoy-04.jpg" alt="" loading="lazy" decoding="async"></p>
+<h4>第 2 步：把 ISO 文件拷进 U 盘</h4>
+<p>安装完成后，U 盘会多出一个大容量分区。打开它，把下载好的 ISO 文件直接复制进去就行——想放几个放几个，Windows、Ubuntu、PE 工具箱可以共存在同一块 U 盘里，互不影响。</p>
+<p><img src="../images/guides/ventoy/ventoy-05.jpg" alt="" loading="lazy" decoding="async"></p>
+<p><img src="../images/guides/ventoy/ventoy-06.jpg" alt="" loading="lazy" decoding="async"></p>
+<h4>第 3 步：用 U 盘启动，选择要装的系统</h4>
+<p>把 U 盘插到目标电脑上，开机时按启动菜单键（多数品牌是 F12、F9 或 Esc），选择从 U 盘启动。Ventoy 会自动列出 U 盘里所有的 ISO 文件，用方向键选中一个，回车即可开始启动。</p>
+<p><img src="../images/guides/ventoy/ventoy-07.jpg" alt="" loading="lazy" decoding="async"></p>
+<h3>常见问题</h3>
+<ol><li><b>能一直当普通 U 盘用吗？</b> 可以。装好 Ventoy 后 U 盘照样能存文件，当启动盘和当普通 U 盘两不误。</li><li><b>怎么升级 Ventoy 版本？</b> 重新打开 <code>Ventoy2Disk.exe</code>，点击「升级」即可，U 盘里的镜像和数据都不会丢。</li><li><b>想换回普通 U 盘？</b> 在同一个界面点「安装」→ 选择「清除 Ventoy」，或者直接格式化一次。</li><li><b>ISO 太多不好找？</b> 可以把镜像按文件夹分类（比如 <code>Windows/</code>、<code>Linux/</code>），启动菜单里同样能识别。</li></ol>
+<hr>
+<p>更多细节请参考 <a href="https://www.ventoy.net/cn/doc_start.html" target="_blank" rel="noopener noreferrer nofollow">Ventoy 官方文档</a>。</p></div>
+        </section>
     <div class="dtags"><span class="ptag">#多合一</span><span class="ptag">#启动盘</span><span class="ptag">#开源</span></div>
     <div class="dacts">
       <a class="go" href="https://github.com/ventoy/Ventoy" target="_blank" rel="noopener noreferrer nofollow">GitHub 仓库 ↗</a>
@@ -223,7 +250,7 @@ footer .ftbrand img{width:18px;height:18px;border-radius:50%;object-fit:cover}
       <div class="sbtns">
         <button type="button" class="sbtn" data-share="copy">📋 复制链接</button>
         <button type="button" class="sbtn" data-share="qr">📱 微信二维码</button>
-        <a class="sbtn" href="https://service.weibo.com/share/share.php?url=https%3A%2F%2Fygf.de5.net%2Ftool%2Fventoy.html&title=Ventoy%20-%20%E4%B8%80%E4%B8%AA%20U%20%E7%9B%98%E8%A3%85%E5%A4%9A%E4%B8%AA%E7%B3%BB%E7%BB%9F%E9%95%9C%E5%83%8F" target="_blank" rel="noopener noreferrer nofollow">🅦 分享到微博</a>
+        <a class="sbtn" href="https://service.weibo.com/share/share.php?url=https%3A%2F%2Fygf.de5.net%2Ftool%2Fventoy.html&title=Ventoy%20-%20Ventoy%E4%B8%80%E4%B8%AA%20U%20%E7%9B%98%E5%90%8C%E6%97%B6%E6%94%AF%E6%8C%81%E8%A3%85%E5%A4%9A%E4%B8%AA%E7%B3%BB%E7%BB%9FWindows%2FLinux%2F" target="_blank" rel="noopener noreferrer nofollow">🅦 分享到微博</a>
         <button type="button" class="sbtn" data-share="native" hidden>↗ 系统分享</button>
       </div>
       <div class="qrbox" id="qrBox">
